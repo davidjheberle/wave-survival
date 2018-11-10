@@ -3,12 +3,12 @@
 [RequireComponent(typeof(Camera))]
 public class MainCameraManager : MonoBehaviour
 {
-    Camera camera;
+    Camera attachedCamera;
 
     void Awake()
     {
-        camera = GetComponent<Camera>();
-        if (Camera.main != camera)
+        attachedCamera = GetComponent<Camera>();
+        if (Camera.main != attachedCamera)
         {
             Destroy(gameObject);
         }
