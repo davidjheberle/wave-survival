@@ -4,10 +4,7 @@ public class ScreenHud : MonoBehaviour
 {
     public void OnClickMenu()
     {
-        // Pause the game.
-        Time.timeScale = 0;
-
-        // Open the menu.
+        // Open the menu and pause the game.
         GameStateLoader.LoadSceneAsync("pause-menu");
     }
 }
