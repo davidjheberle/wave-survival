@@ -8,6 +8,12 @@ public abstract class Weapon : MonoBehaviour
     [SerializeField]
     protected float damage = 0;
 
+    // Owner of this weapon. Null if none.
+    public Player Owner {
+        get;
+        set;
+    }
+
     // Use the weapon.
     public abstract void Use();
 }

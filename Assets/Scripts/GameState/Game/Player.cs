@@ -2,6 +2,15 @@
 
 public class Player : MonoBehaviour
 {
+    // Create the player.
+    public static Player Create(Transform parent)
+    {
+        // Create a game object and add a player script to it.
+        Player player = new GameObject("Player", typeof(Player)).GetComponent<Player>();
+        player.transform.SetParent(parent);
+        return player;
+    }
+
     // Weapon slot enum.
     public enum WeaponSlot
     {
@@ -36,13 +45,16 @@ public class Player : MonoBehaviour
         private set;
     }
 
-    // Create the player.
-    public static Player Create(Transform parent)
-    {
-        // Create a game object and add a player script to it.
-        GameObject playerGamObject = new GameObject("Player", typeof(Player));
-        playerGamObject.transform.SetParent(parent);
-        return playerGamObject.GetComponent<Player>();
+    // Vector that represents the direction the player is facing.
+    private Vector3 direction;
+    public Vector3 Direction {
+        get {
+            return direction;
+        }
+        private set {
+            direction = value;
+            // TODO Set animation group from the direction the player is facing.
+        }
     }
 
     // Self-initialize.
@@ -58,6 +70,10 @@ public class Player : MonoBehaviour
 
         // Equip a pistol.
         PrimaryWeapon = Pistol.Create(transform);
+        PrimaryWeapon.Owner = this;
+
+        // Start facing down. Towards the camera.
+        Direction = Vector3.down;
     }
 
     // Update.
@@ -65,10 +81,34 @@ public class Player : MonoBehaviour
     {
         float x = Input.GetAxis("Horizontal") * Time.deltaTime * SPEED_X;
         float y = Input.GetAxis("Vertical") * Time.deltaTime * SPEED_Y;
-        Debug.LogFormat("x: {0}, y: {1}", x, y);
         transform.Translate(x, y, 0);
 
-        // TODO Set animation group from the direction the player is facing.
+        // Update direction.
+        float absX = Mathf.Abs(x);
+        float absY = Mathf.Abs(y);
+        if (absX > absY)
+        {
+            if (x < 0)
+            {
+                // Face left.
+                Direction = Vector3.left;
+            } else if (x > 0)
+            {
+                // Face right.
+                Direction = Vector3.right;
+            }
+        } else if (absY > absX)
+        {
+            if (y < 0)
+            {
+                // Face down.
+                Direction = Vector3.down;
+            } else if (y > 0)
+            {
+                // Face up.
+                Direction = Vector3.up;
+            }
+        }
 
         if (Input.GetButtonDown("Fire1"))
         {

@@ -8,9 +8,9 @@ public class Pistol : Weapon
     public static Pistol Create(Transform parent)
     {
         // Create a game object and add a pistol script to it.
-        GameObject pistolGameObject = new GameObject("Pistol", typeof(Pistol));
-        pistolGameObject.transform.SetParent(parent);
-        return pistolGameObject.GetComponent<Pistol>();
+        Pistol pistol = new GameObject("Pistol", typeof(Pistol)).GetComponent<Pistol>();
+        pistol.transform.SetParent(parent);
+        return pistol;
     }
 
     // List of active bullets fired by this weapon.
@@ -33,6 +33,6 @@ public class Pistol : Weapon
     public override void Use()
     {
         // Shoot a single bullet.
-        Bullet bullet = Bullet.Create(transform.position);
+        Bullet bullet = Bullet.Create(transform.position, Owner.Direction);
     }
 }
