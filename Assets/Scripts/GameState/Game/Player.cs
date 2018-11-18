@@ -27,11 +27,8 @@ public class Player : MonoBehaviour
         }
     }
 
-    // Speed in the x direction.
-    private const float SPEED_X = 10;
-
-    // Speed in the y direction.
-    private const float SPEED_Y = 10;
+    // Speed.
+    private const float SPEED = 10;
 
     // The player's primary weapon.
     public Weapon PrimaryWeapon {
@@ -79,9 +76,10 @@ public class Player : MonoBehaviour
     // Update.
     private void Update()
     {
-        float x = Input.GetAxis("Horizontal") * Time.deltaTime * SPEED_X;
-        float y = Input.GetAxis("Vertical") * Time.deltaTime * SPEED_Y;
-        transform.Translate(x, y, 0);
+        float x = Input.GetAxis("Horizontal");
+        float y = Input.GetAxis("Vertical");
+        Vector3 velocity = new Vector3(x, y) * SPEED * Time.deltaTime;
+        transform.Translate(velocity);
 
         // Update direction.
         float absX = Mathf.Abs(x);
