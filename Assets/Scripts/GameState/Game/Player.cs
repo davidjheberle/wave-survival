@@ -55,6 +55,9 @@ public class Player : MonoBehaviour
 
         // Set the active weapon slot.
         ActiveWeaponSlot = WeaponSlot.Primary;
+
+        // Equip a pistol.
+        PrimaryWeapon = Pistol.Create(transform);
     }
 
     // Update.
@@ -66,6 +69,19 @@ public class Player : MonoBehaviour
         transform.Translate(x, y, 0);
 
         // TODO Set animation group from the direction the player is facing.
+
+        if (Input.GetButtonDown("Fire1"))
+        {
+            switch (ActiveWeaponSlot)
+            {
+                case WeaponSlot.Primary:
+                    PrimaryWeapon.Use();
+                    break;
+
+                case WeaponSlot.Secondary:
+                    break;
+            }
+        }
     }
 
     // Equip a weapon in the active slot.
