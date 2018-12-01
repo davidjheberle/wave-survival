@@ -1,16 +1,16 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 public class Bullet : MonoBehaviour
 {
     // Create the pistol.
-    public static Bullet Create(Vector3 spawnLocation, Vector3 direction)
+    public static Bullet Create(Action<Bullet> returnBullet)
     {
         // Create a game object and add a bullet script to it.
         Bullet bullet = new GameObject("Bullet", typeof(Bullet)).GetComponent<Bullet>();
-        bullet.transform.position = spawnLocation;
-        bullet.Direction = direction;
+        bullet.ReturnBullet = returnBullet;
         return bullet;
     }
 
@@ -21,6 +21,20 @@ public class Bullet : MonoBehaviour
     private Vector3 Direction {
         get;
         set;
+    }
+    
+    // Action to return bullet to the source.
+    private Action<Bullet> ReturnBullet {
+        get;
+        set;
+    }
+
+    // Public initialize.
+    public void Initialize(Vector3 spawnLocation, Vector3 direction)
+    {
+        transform.position = spawnLocation;
+        Direction = direction;
+        gameObject.SetActive(true);
     }
 
     // Self-initialize.
@@ -38,5 +52,22 @@ public class Bullet : MonoBehaviour
     {
         Vector3 velocity = Direction * SPEED * Time.deltaTime;
         transform.Translate(velocity);
+
+        // Check if off-screen and reset if necessary.
+        Vector3 viewportPosition = Camera.main.WorldToViewportPoint(transform.position);
+        if (viewportPosition.x < 0 || viewportPosition.x > 1 ||
+            viewportPosition.y < 0 || viewportPosition.y > 1)
+        {
+            Reset();
+        }
+    }
+
+    // Reset bullet to ideal.
+    private void Reset()
+    {
+        Direction = Vector3.zero;
+        transform.position = Vector3.zero;
+        gameObject.SetActive(false);
+        ReturnBullet(this);
     }
 }
