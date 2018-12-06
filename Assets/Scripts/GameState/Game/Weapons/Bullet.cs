@@ -6,10 +6,11 @@ using System;
 public class Bullet : MonoBehaviour
 {
     // Create the pistol.
-    public static Bullet Create(Action<Bullet> returnBullet)
+    public static Bullet Create(Transform parent, Action<Bullet> returnBullet)
     {
         // Create a game object and add a bullet script to it.
         Bullet bullet = new GameObject("Bullet", typeof(Bullet)).GetComponent<Bullet>();
+        bullet.transform.SetParent(parent);
         bullet.ReturnBullet = returnBullet;
         return bullet;
     }

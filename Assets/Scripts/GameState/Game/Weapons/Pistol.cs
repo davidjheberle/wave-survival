@@ -63,7 +63,7 @@ public class Pistol : Weapon
             else
             {
                 // Shoot a single bullet.
-                bullet = Bullet.Create(ReturnBullet);
+                bullet = Bullet.Create(Owner.transform.parent, ReturnBullet);
                 bullet.Initialize(transform.position, Owner.Direction);
             }
             activeBullets.Add(bullet);
