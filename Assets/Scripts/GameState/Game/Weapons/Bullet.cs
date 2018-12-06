@@ -55,12 +55,7 @@ public class Bullet : MonoBehaviour
         transform.Translate(velocity);
 
         // Check if off-screen and reset if necessary.
-        Vector3 viewportPosition = Camera.main.WorldToViewportPoint(transform.position);
-        if (viewportPosition.x < 0 || viewportPosition.x > 1 ||
-            viewportPosition.y < 0 || viewportPosition.y > 1)
-        {
-            Reset();
-        }
+        CheckBounds();
     }
 
     // Reset bullet to ideal.
@@ -70,5 +65,23 @@ public class Bullet : MonoBehaviour
         transform.position = Vector3.zero;
         gameObject.SetActive(false);
         ReturnBullet(this);
+    }
+
+    // Check the position relative to the viewport.
+    private void CheckBounds()
+    {
+        // Return if the main camera is null.
+        if (Camera.main == null)
+        {
+            return;
+        }
+
+        // Check position relative to the viewport.
+        Vector3 viewportPosition = Camera.main.WorldToViewportPoint(transform.position);
+        if (viewportPosition.x < 0 || viewportPosition.x > 1 ||
+            viewportPosition.y < 0 || viewportPosition.y > 1)
+        {
+            Reset();
+        }
     }
 }

@@ -81,6 +81,9 @@ public class Player : MonoBehaviour
         Vector3 velocity = new Vector3(x, y) * SPEED * Time.deltaTime;
         transform.Translate(velocity);
 
+        // Check if off-screen and reset if necessary.
+        CheckBounds();
+
         // Update direction.
         float absX = Mathf.Abs(x);
         float absY = Mathf.Abs(y);
@@ -134,6 +137,46 @@ public class Player : MonoBehaviour
             case WeaponSlot.Secondary:
                 SecondaryWeapon = weapon;
                 break;
+        }
+    }
+
+    // Check the position relative to the viewport.
+    private void CheckBounds()
+    {
+        // Return if the main camera is null.
+        if (Camera.main == null)
+        {
+            return;
+        }
+
+        // Check position relative to the viewport.
+        Vector3 viewportPosition = Camera.main.WorldToViewportPoint(transform.position);
+        bool adjustmentRequired = false;
+        if (viewportPosition.x < 0)
+        {
+            viewportPosition.x = 0;
+            adjustmentRequired = true;
+        }
+        else if (viewportPosition.x > 1)
+        {
+            viewportPosition.x = 1;
+            adjustmentRequired = true;
+        }
+        if (viewportPosition.y < 0)
+        {
+            viewportPosition.y = 0;
+            adjustmentRequired = true;
+        }
+        else if (viewportPosition.y > 1)
+        {
+            viewportPosition.y = 1;
+            adjustmentRequired = true;
+        }
+
+        // Modify the transform's position if an adjustment is required.
+        if (adjustmentRequired)
+        {
+            transform.position = Camera.main.ViewportToWorldPoint(viewportPosition);
         }
     }
 }
