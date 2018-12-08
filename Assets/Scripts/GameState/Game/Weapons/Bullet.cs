@@ -31,9 +31,9 @@ public class Bullet : MonoBehaviour
     }
 
     // Public initialize.
-    public void Initialize(Vector3 spawnLocation, Vector3 direction)
+    public void Initialize(Vector3 position, Vector3 direction)
     {
-        transform.position = spawnLocation;
+        transform.position = position;
         Direction = direction;
         gameObject.SetActive(true);
     }

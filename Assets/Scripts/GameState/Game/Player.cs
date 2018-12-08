@@ -54,6 +54,12 @@ public class Player : MonoBehaviour
         }
     }
 
+    // Public initialize.
+    public void Initialize(Vector3 position)
+    {
+        transform.position = position;
+    }
+
     // Self-initialize.
     private void Awake()
     {
