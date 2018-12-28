@@ -8,11 +8,6 @@ public class Enemy : MonoBehaviour
         // Create a game object and add an enemy script to it.
         Enemy enemy = new GameObject("Enemy", typeof(Enemy)).GetComponent<Enemy>();
         enemy.transform.SetParent(parent);
-        BoxCollider2D boxCollider2D = enemy.gameObject.AddComponent<BoxCollider2D>();
-        boxCollider2D.isTrigger = true;
-        Rigidbody2D rigidbody2D = enemy.gameObject.AddComponent<Rigidbody2D>();
-        rigidbody2D.gravityScale = 0;
-
         return enemy;
     }
 
@@ -70,11 +65,5 @@ public class Enemy : MonoBehaviour
     {
         // Do death animation.
         Destroy(gameObject);
-    }
-
-    // Collider triggered.
-    private void OnTriggerEnter2D(Collider2D collision)
-    {
-        Debug.Log("OnTriggerEnter2D");
     }
 }

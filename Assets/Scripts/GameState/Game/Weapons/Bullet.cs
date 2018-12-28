@@ -11,7 +11,6 @@ public class Bullet : MonoBehaviour
         // Create a game object and add a bullet script to it.
         Bullet bullet = new GameObject("Bullet", typeof(Bullet)).GetComponent<Bullet>();
         bullet.transform.SetParent(parent);
-        bullet.gameObject.AddComponent(typeof(BoxCollider2D));
         bullet.ReturnBullet = returnBullet;
         return bullet;
     }
