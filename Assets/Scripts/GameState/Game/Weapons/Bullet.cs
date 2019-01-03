@@ -12,6 +12,10 @@ public class Bullet : MonoBehaviour
         Bullet bullet = new GameObject("Bullet", typeof(Bullet)).GetComponent<Bullet>();
         bullet.transform.SetParent(parent);
         bullet.ReturnBullet = returnBullet;
+        bullet.OBB = new OBB(bullet.transform.position, .05f / 2f, .05f / 2f, 0);
+
+        CollisionResolver.AddBullet(bullet);
+
         return bullet;
     }
 
@@ -22,6 +26,12 @@ public class Bullet : MonoBehaviour
     private Vector3 Direction {
         get;
         set;
+    }
+
+    // Collision OBB.
+    public OBB OBB {
+        get;
+        private set;
     }
     
     // Action to return bullet to the source.
@@ -53,6 +63,9 @@ public class Bullet : MonoBehaviour
     {
         Vector3 velocity = Direction * SPEED * Time.deltaTime;
         transform.Translate(velocity);
+        
+        // Update collision OBB.
+        OBB = new OBB(transform.position, .05f / 2f, .05f / 2f, 0);
 
         // Check if off-screen and reset if necessary.
         CheckBounds();

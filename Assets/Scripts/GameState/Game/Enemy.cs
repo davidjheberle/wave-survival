@@ -8,6 +8,10 @@ public class Enemy : MonoBehaviour
         // Create a game object and add an enemy script to it.
         Enemy enemy = new GameObject("Enemy", typeof(Enemy)).GetComponent<Enemy>();
         enemy.transform.SetParent(parent);
+        enemy.OBB = new OBB(enemy.transform.position, .25f / 2f, .25f / 2f, 0);
+
+        CollisionResolver.AddEnemy(enemy);
+
         return enemy;
     }
 
@@ -20,6 +24,24 @@ public class Enemy : MonoBehaviour
         private set {
             direction = value;
             // TODO Set animation group from the direction the player is facing.
+        }
+    }
+
+    // Collision OBB.
+    public OBB OBB {
+        get;
+        private set;
+    }
+
+    private SpriteRenderer spriteRenderer;
+
+    // Color.
+    public Color Color {
+        get {
+            return spriteRenderer.color;
+        }
+        set {
+            spriteRenderer.color = value;
         }
     }
 
@@ -51,13 +73,20 @@ public class Enemy : MonoBehaviour
     private void Awake()
     {
         // Create and add the ememy sprite.
-        SpriteRenderer spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
+        spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
         spriteRenderer.sprite = Resources.Load<Sprite>("FFFFFF-1");
-        spriteRenderer.color = Color.red;
         spriteRenderer.transform.localScale = new Vector3(25, 25, 1);
+        Color = Color.black;
 
         // Start facing down. Towards the camera.
         Direction = Vector3.down;
+    }
+
+    // Update.
+    private void Update()
+    {
+        // Update collision OBB.
+        OBB = new OBB(transform.position, .25f / 2f, .25f / 2f, 0);
     }
 
     // Die.

@@ -11,15 +11,15 @@ public class Game : MonoBehaviour
         // Create the player.
         player = Player.Create(transform);
         player.Initialize(Vector3.zero);
-
-        // Create an enemy.
-        Enemy enemy = Enemy.Create(transform);
-        enemy.Initialize(new Vector3(-3, 0, 0), Vector3.down, 10);
     }
 
     // Cross-initialize.
     private void Start()
     {
+        // Create an enemy.
+        Enemy enemy = Enemy.Create(transform);
+        enemy.Initialize(new Vector3(-3, 0, 0), Vector3.down, 10);
+
         // Start the wave.
     }
 }
