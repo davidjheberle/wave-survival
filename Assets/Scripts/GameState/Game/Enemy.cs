@@ -8,7 +8,7 @@ public class Enemy : MonoBehaviour
         // Create a game object and add an enemy script to it.
         Enemy enemy = new GameObject("Enemy", typeof(Enemy)).GetComponent<Enemy>();
         enemy.transform.SetParent(parent);
-        enemy.OBB = new OBB(enemy.transform.position, .25f / 2f, .25f / 2f, 0);
+        enemy.AABB = new AABB(enemy.transform.position, new Vector3(.25f / 2f, .25f / 2f, 0));
 
         CollisionResolver.AddEnemy(enemy);
 
@@ -27,8 +27,15 @@ public class Enemy : MonoBehaviour
         }
     }
 
-    // Collision OBB.
-    public OBB OBB {
+    // Velocity.
+    public Vector3 Velocity {
+        get {
+            return Direction;
+        }
+    }
+
+    // Collision AABB.
+    public AABB AABB {
         get;
         private set;
     }
@@ -86,7 +93,7 @@ public class Enemy : MonoBehaviour
     private void Update()
     {
         // Update collision OBB.
-        OBB = new OBB(transform.position, .25f / 2f, .25f / 2f, 0);
+        AABB = new AABB(transform.position, new Vector3(.25f / 2f, .25f / 2f, 0));
     }
 
     // Die.

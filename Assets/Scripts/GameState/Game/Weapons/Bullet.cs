@@ -12,7 +12,7 @@ public class Bullet : MonoBehaviour
         Bullet bullet = new GameObject("Bullet", typeof(Bullet)).GetComponent<Bullet>();
         bullet.transform.SetParent(parent);
         bullet.ReturnBullet = returnBullet;
-        bullet.OBB = new OBB(bullet.transform.position, .05f / 2f, .05f / 2f, 0);
+        bullet.AABB = new AABB(bullet.transform.position, new Vector3(.05f / 2f, .05f / 2f, 0));
 
         CollisionResolver.AddBullet(bullet);
 
@@ -28,8 +28,15 @@ public class Bullet : MonoBehaviour
         set;
     }
 
-    // Collision OBB.
-    public OBB OBB {
+    // Velocity.
+    public Vector3 Velocity {
+        get {
+            return Direction * SPEED;
+        }
+    }
+
+    // Collision AABB.
+    public AABB AABB {
         get;
         private set;
     }
@@ -61,11 +68,10 @@ public class Bullet : MonoBehaviour
     // Update.
     private void Update()
     {
-        Vector3 velocity = Direction * SPEED * Time.deltaTime;
-        transform.Translate(velocity);
+        transform.Translate(Velocity * Time.deltaTime);
         
         // Update collision OBB.
-        OBB = new OBB(transform.position, .05f / 2f, .05f / 2f, 0);
+        AABB = new AABB(transform.position, new Vector3(.05f / 2f, .05f / 2f, 0));
 
         // Check if off-screen and reset if necessary.
         CheckBounds();

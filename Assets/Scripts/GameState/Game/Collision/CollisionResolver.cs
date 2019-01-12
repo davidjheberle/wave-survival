@@ -31,7 +31,7 @@ public class CollisionResolver : MonoBehaviour
         {
             foreach (Bullet bullet in bullets)
             {
-                int result = TestOBBOBB(enemy.OBB, bullet.OBB);
+                int result = TestAABBAABB(enemy.AABB, bullet.AABB);
                 if (result == 1)
                 {
                     enemy.Color = Color.red;
@@ -42,6 +42,14 @@ public class CollisionResolver : MonoBehaviour
                 }
             }
         }
+    }
+
+    private int TestAABBAABB(AABB a, AABB b)
+    {
+        if (Mathf.Abs(a.c.x - b.c.x) > (a.e.x + b.e.x)) return 0;
+        if (Mathf.Abs(a.c.y - b.c.y) > (a.e.y + b.e.y)) return 0;
+        if (Mathf.Abs(a.c.z - b.c.z) > (a.e.z + b.e.z)) return 0;
+        return 1;
     }
 
     private int TestOBBOBB(OBB a, OBB b)

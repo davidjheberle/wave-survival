@@ -2,17 +2,24 @@
 
 public struct OBB
 {
-    public Vector2 c;
-    public Vector3[] u;
+    // Center point.
+    public Vector3 c;
+
+    // Positive halfwidth extents along each axis.
     public Vector3 e;
 
-    public OBB(Vector2 c, float halfLengthX, float halfLengthY, float halfLengthZ)
+    // Local x, y, and z axes.
+    public Vector3[] u;
+
+    // c - center point.
+    // e - positive halfwidth extents along each axis.
+    public OBB(Vector3 c, Vector3 e, Vector3 xAxis, Vector3 yAxis, Vector3 zAxis)
     {
         this.c = c;
+        this.e = e;
         this.u = new Vector3[3];
-        this.u[0] = Vector3.right;
-        this.u[1] = Vector3.up;
-        this.u[2] = Vector3.forward;
-        e = new Vector3(halfLengthX, halfLengthY, halfLengthZ);
+        this.u[0] = xAxis;
+        this.u[1] = yAxis;
+        this.u[2] = zAxis;
     }
 }
