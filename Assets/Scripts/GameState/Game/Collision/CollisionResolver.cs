@@ -25,20 +25,37 @@ public class CollisionResolver : MonoBehaviour
     }
 
     // Late update to check collisions.
-    private void LateUpdate()
+    private void Update()
     {
         foreach (Enemy enemy in enemies)
         {
+            if (!enemy.isActiveAndEnabled) continue;
+            enemy.Color = Color.black;
+
+            // Calculate broad test enemy AABB and velocity.
+            Vector3 va = enemy.Velocity * Time.deltaTime;
+            AABB a = MostSeparatedPointsOnAABB(new Vector3[] { enemy.AABB.Min, enemy.AABB.Max, enemy.AABB.Min + va, enemy.AABB.Max + va });
+
             foreach (Bullet bullet in bullets)
             {
-                int result = TestAABBAABB(enemy.AABB, bullet.AABB);
+                if (!bullet.isActiveAndEnabled) continue;
+
+                // Calculate broad test bullet AABB and velocity.
+                Vector3 vb = bullet.Velocity * Time.deltaTime;
+                AABB b = MostSeparatedPointsOnAABB(new Vector3[] { bullet.AABB.Min, bullet.AABB.Max, bullet.AABB.Min + vb, bullet.AABB.Max + vb });
+
+                // Broad test.
+                int result = TestAABBAABB(a, b);
+                if (result == 1)
+                {
+                    // Narrow test.
+                    result = IntersectMovingAABBAABB(enemy.AABB, bullet.AABB, va, vb);
+                }
+                // Result conditional.
                 if (result == 1)
                 {
                     enemy.Color = Color.red;
-                }
-                else
-                {
-                    enemy.Color = Color.black;
+                    bullet.Reset();
                 }
             }
         }
@@ -46,9 +63,50 @@ public class CollisionResolver : MonoBehaviour
 
     private int TestAABBAABB(AABB a, AABB b)
     {
-        if (Mathf.Abs(a.c.x - b.c.x) > (a.e.x + b.e.x)) return 0;
-        if (Mathf.Abs(a.c.y - b.c.y) > (a.e.y + b.e.y)) return 0;
-        if (Mathf.Abs(a.c.z - b.c.z) > (a.e.z + b.e.z)) return 0;
+        if (Mathf.Abs(a.center[0] - b.center[0]) > (a.extents[0] + b.extents[0])) return 0;
+        if (Mathf.Abs(a.center[1] - b.center[1]) > (a.extents[1] + b.extents[1])) return 0;
+        if (Mathf.Abs(a.center[2] - b.center[2]) > (a.extents[2] + b.extents[2])) return 0;
+        return 1;
+    }
+
+    private int IntersectMovingAABBAABB(AABB a, AABB b, Vector3 va, Vector3 vb)
+    {
+        // Exit early if 'a' and 'b' are initially overlapping.
+        if (TestAABBAABB(a, b) == 1)
+        {
+            return 1;
+        }
+
+        // Use relative velocity.
+        // Effectively treating 'a' as stationary.
+        Vector3 v = va - vb;
+
+        // Initialize times of first and last contact.
+        float tfirst = 0f;
+        float tlast = 1f;
+
+        // For each axis, determine times of first and last contact, if any.
+        for (int i = 0; i < 3; i++)
+        {
+            if (v[i] < 0f)
+            {
+                if (b.Max[i] < a.Min[i]) return 0;      // Nonintersecting and moving apart.
+                if (a.Max[i] < b.Min[i]) tfirst = Mathf.Max((a.Max[i] - b.Min[i]) / v[i], tfirst);
+                if (b.Max[i] > a.Min[i]) tlast = Mathf.Min((a.Min[i] - b.Max[i]) / v[i], tlast);
+            }
+            if (v[i] > 0f)
+            {
+                if (b.Min[i] > a.Max[i]) return 0;      // Nonintersecting and moving apart.
+                if (b.Max[i] < a.Min[i]) tfirst = Mathf.Max((a.Min[i] - b.Max[i]) / v[i], tfirst);
+                if (a.Max[i] > b.Min[i]) tlast = Mathf.Min((a.Max[i] - b.Min[i]) / v[i], tlast);
+            }
+
+            // No overlap possible if time of first contact occurs after time of last contact.
+            if (tfirst > tlast)
+            {
+                return 0;
+            }
+        }
         return 1;
     }
 
@@ -201,5 +259,43 @@ public class CollisionResolver : MonoBehaviour
 
         // Since no separating axis is found, the OBBs must be intersecting.
         return 1;
+    }
+
+    public AABB MostSeparatedPointsOnAABB(Vector3[] points)
+    {
+        // First find most extreme points along the principal axes.
+        int minx = 0, maxx = 0, miny = 0, maxy = 0, minz = 0, maxz = 0;
+        for (int i = 1; i < points.Length; i++)
+        {
+            if (points[i].x < points[minx].x) minx = i;
+            if (points[i].x > points[maxx].x) maxx = i;
+            if (points[i].y < points[miny].y) miny = i;
+            if (points[i].y > points[maxy].y) maxy = i;
+            if (points[i].z < points[minz].z) minz = i;
+            if (points[i].z > points[maxz].z) maxz = i;
+        }
+
+        // Compute the squared distances for the three pairs of points.
+        float dist2x = Vector3.Dot(points[maxx] - points[minx], points[maxx] - points[minx]);
+        float dist2y = Vector3.Dot(points[maxy] - points[miny], points[maxy] - points[miny]);
+        float dist2z = Vector3.Dot(points[maxz] - points[minz], points[maxz] - points[minz]);
+
+        // Pick the pair (min, max) of points most distant.
+        int min = minx;
+        int max = maxx;
+        if (dist2y > dist2x && dist2y > dist2z)
+        {
+            max = maxy;
+            min = miny;
+        }
+        if (dist2z > dist2x && dist2z > dist2y)
+        {
+            max = maxz;
+            min = minz;
+        }
+
+        Vector3 extents = (points[max] - points[min]) / 2f;
+        Vector3 center = points[min] + extents;
+        return new AABB(center, extents);
     }
 }

@@ -8,12 +8,14 @@ public class Enemy : MonoBehaviour
         // Create a game object and add an enemy script to it.
         Enemy enemy = new GameObject("Enemy", typeof(Enemy)).GetComponent<Enemy>();
         enemy.transform.SetParent(parent);
-        enemy.AABB = new AABB(enemy.transform.position, new Vector3(.25f / 2f, .25f / 2f, 0));
 
         CollisionResolver.AddEnemy(enemy);
 
         return enemy;
     }
+
+    // Speed.
+    private const float SPEED = 0;
 
     // Vector that represents the direction the enemy is facing.
     private Vector3 direction;
@@ -30,14 +32,16 @@ public class Enemy : MonoBehaviour
     // Velocity.
     public Vector3 Velocity {
         get {
-            return Direction;
+            return Direction * SPEED;
         }
     }
 
     // Collision AABB.
     public AABB AABB {
-        get;
-        private set;
+        get {
+            // Create a collision AABB.
+            return new AABB(transform.position, new Vector3(.25f / 2f, .25f / 2f, 0));
+        }
     }
 
     private SpriteRenderer spriteRenderer;
@@ -87,13 +91,6 @@ public class Enemy : MonoBehaviour
 
         // Start facing down. Towards the camera.
         Direction = Vector3.down;
-    }
-
-    // Update.
-    private void Update()
-    {
-        // Update collision OBB.
-        AABB = new AABB(transform.position, new Vector3(.25f / 2f, .25f / 2f, 0));
     }
 
     // Die.

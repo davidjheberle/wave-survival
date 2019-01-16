@@ -12,7 +12,6 @@ public class Bullet : MonoBehaviour
         Bullet bullet = new GameObject("Bullet", typeof(Bullet)).GetComponent<Bullet>();
         bullet.transform.SetParent(parent);
         bullet.ReturnBullet = returnBullet;
-        bullet.AABB = new AABB(bullet.transform.position, new Vector3(.05f / 2f, .05f / 2f, 0));
 
         CollisionResolver.AddBullet(bullet);
 
@@ -37,8 +36,10 @@ public class Bullet : MonoBehaviour
 
     // Collision AABB.
     public AABB AABB {
-        get;
-        private set;
+        get {
+            // Create a collision AABB.
+            return new AABB(transform.position, new Vector3(.05f / 2f, .05f / 2f, 0));
+        }
     }
     
     // Action to return bullet to the source.
@@ -65,20 +66,18 @@ public class Bullet : MonoBehaviour
         spriteRenderer.transform.localScale = new Vector3(5, 5, 1);
     }
 
-    // Update.
-    private void Update()
+    // Late update.
+    private void LateUpdate()
     {
+        // Move.
         transform.Translate(Velocity * Time.deltaTime);
-        
-        // Update collision OBB.
-        AABB = new AABB(transform.position, new Vector3(.05f / 2f, .05f / 2f, 0));
 
         // Check if off-screen and reset if necessary.
         CheckBounds();
     }
 
-    // Reset bullet to ideal.
-    private void Reset()
+    // Reset bullet to idle.
+    public void Reset()
     {
         Direction = Vector3.zero;
         transform.position = Vector3.zero;
