@@ -79,7 +79,7 @@ public class CollisionResolver : MonoBehaviour
 
         // Use relative velocity.
         // Effectively treating 'a' as stationary.
-        Vector3 v = va - vb;
+        Vector3 v = vb - va;
 
         // Initialize times of first and last contact.
         float tfirst = 0f;
