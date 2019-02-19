@@ -2,6 +2,9 @@
 
 public class Player : MonoBehaviour
 {
+    private const float WIDTH = .25f;
+    private const float HEIGHT = .25f;
+
     // Create the player.
     public static Player Create(Transform parent)
     {
@@ -54,6 +57,14 @@ public class Player : MonoBehaviour
         }
     }
 
+    // Collision AABB.
+    public AABB AABB {
+        get {
+            // Create a collision AABB.
+            return new AABB(transform.position, new Vector3(WIDTH / 2f, HEIGHT / 2f, 0));
+        }
+    }
+
     // Public initialize.
     public void Initialize(Vector3 position)
     {
@@ -66,7 +77,7 @@ public class Player : MonoBehaviour
         // Create and add the player sprite.
         SpriteRenderer spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
         spriteRenderer.sprite = Resources.Load<Sprite>("FFFFFF-1");
-        spriteRenderer.transform.localScale = new Vector3(25, 25, 1);
+        spriteRenderer.transform.localScale = new Vector3(WIDTH * 100, HEIGHT * 100, 1);
 
         // Set the active weapon slot.
         ActiveWeaponSlot = WeaponSlot.Primary;
@@ -85,6 +96,11 @@ public class Player : MonoBehaviour
         float x = Input.GetAxis("Horizontal");
         float y = Input.GetAxis("Vertical");
         Vector3 velocity = new Vector3(x, y) * SPEED * Time.deltaTime;
+
+        // If not jumping.
+        // Apply gravity.
+        velocity.y += -9.8f * Time.deltaTime;
+
         transform.Translate(velocity);
 
         // Check if off-screen and reset if necessary.
@@ -156,33 +172,37 @@ public class Player : MonoBehaviour
         }
 
         // Check position relative to the viewport.
-        Vector3 viewportPosition = Camera.main.WorldToViewportPoint(transform.position);
+        AABB aabb = AABB;
+        Vector3 viewportMin = Camera.main.ViewportToWorldPoint(Vector3.zero);
+        Vector3 viewportMax = Camera.main.ViewportToWorldPoint(Vector3.one);
+        Vector3 newPosition = aabb.Center;
+
         bool adjustmentRequired = false;
-        if (viewportPosition.x < 0)
+        if (aabb.Min.x < viewportMin.x)
         {
-            viewportPosition.x = 0;
+            newPosition.x = viewportMin.x + aabb.Extents.x;
             adjustmentRequired = true;
         }
-        else if (viewportPosition.x > 1)
+        else if (aabb.Max.x > viewportMax.x)
         {
-            viewportPosition.x = 1;
+            newPosition.x = viewportMax.x - aabb.Extents.x;
             adjustmentRequired = true;
         }
-        if (viewportPosition.y < 0)
+        if (aabb.Min.y < viewportMin.y)
         {
-            viewportPosition.y = 0;
+            newPosition.y = viewportMin.y + aabb.Extents.y;
             adjustmentRequired = true;
         }
-        else if (viewportPosition.y > 1)
+        else if (aabb.Max.y > viewportMax.y)
         {
-            viewportPosition.y = 1;
+            newPosition.y = viewportMax.y - aabb.Extents.y;
             adjustmentRequired = true;
         }
 
         // Modify the transform's position if an adjustment is required.
         if (adjustmentRequired)
         {
-            transform.position = Camera.main.ViewportToWorldPoint(viewportPosition);
+            transform.position = newPosition;
         }
     }
 }

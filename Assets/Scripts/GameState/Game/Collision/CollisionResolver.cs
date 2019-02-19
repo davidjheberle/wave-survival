@@ -63,9 +63,9 @@ public class CollisionResolver : MonoBehaviour
 
     private int TestAABBAABB(AABB a, AABB b)
     {
-        if (Mathf.Abs(a.center[0] - b.center[0]) > (a.extents[0] + b.extents[0])) return 0;
-        if (Mathf.Abs(a.center[1] - b.center[1]) > (a.extents[1] + b.extents[1])) return 0;
-        if (Mathf.Abs(a.center[2] - b.center[2]) > (a.extents[2] + b.extents[2])) return 0;
+        if (Mathf.Abs(a.Center[0] - b.Center[0]) > (a.Extents[0] + b.Extents[0])) return 0;
+        if (Mathf.Abs(a.Center[1] - b.Center[1]) > (a.Extents[1] + b.Extents[1])) return 0;
+        if (Mathf.Abs(a.Center[2] - b.Center[2]) > (a.Extents[2] + b.Extents[2])) return 0;
         return 1;
     }
 

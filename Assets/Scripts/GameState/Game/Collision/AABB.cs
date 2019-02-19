@@ -3,29 +3,35 @@
 public struct AABB
 {
     // Center point.
-    public Vector3 center;
+    public Vector3 Center {
+        get;
+        private set;
+    }
 
     // Halfwidth extents along each axis.
-    public Vector3 extents;
+    public Vector3 Extents {
+        get;
+        private set;
+    }
 
     // Min point.
     public Vector3 Min {
         get {
-            return center - extents;
+            return Center - Extents;
         }
     }
 
     // Max point.
     public Vector3 Max {
         get {
-            return center + extents;
+            return Center + Extents;
         }
     }
 
     // Size.
     public Vector3 Size {
         get {
-            return extents * 2f;
+            return Extents * 2f;
         }
     }
 
@@ -33,17 +39,17 @@ public struct AABB
     // e - positive halfwidth extents along each axis.
     public AABB(Vector3 c, Vector3 e)
     {
-        this.center = c;
-        this.extents = e;
+        this.Center = c;
+        this.Extents = e;
     }
 
     // Debug draw function.
     public void Draw(Color color)
     {
-        Vector3 topRight = new Vector3(center.x + extents.x, center.y - extents.y);
-        Vector3 topLeft = center - extents;
-        Vector3 bottomRight = center + extents;
-        Vector3 bottomLeft = new Vector3(center.x - extents.x, center.y + extents.y);
+        Vector3 topRight = new Vector3(Center.x + Extents.x, Center.y - Extents.y);
+        Vector3 topLeft = Center - Extents;
+        Vector3 bottomRight = Center + Extents;
+        Vector3 bottomLeft = new Vector3(Center.x - Extents.x, Center.y + Extents.y);
         Debug.DrawLine(topLeft, topRight, color);
         Debug.DrawLine(topRight, bottomRight, color);
         Debug.DrawLine(bottomRight, bottomLeft, color);

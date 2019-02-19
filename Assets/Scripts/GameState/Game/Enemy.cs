@@ -2,6 +2,9 @@
 
 public class Enemy : MonoBehaviour
 {
+    private const float WIDTH = .25f;
+    private const float HEIGHT = .25f;
+
     // Create an enemy.
     public static Enemy Create(Transform parent)
     {
@@ -40,7 +43,7 @@ public class Enemy : MonoBehaviour
     public AABB AABB {
         get {
             // Create a collision AABB.
-            return new AABB(transform.position, new Vector3(.25f / 2f, .25f / 2f, 0));
+            return new AABB(transform.position, new Vector3(WIDTH / 2f, HEIGHT / 2f, 0));
         }
     }
 
@@ -86,11 +89,70 @@ public class Enemy : MonoBehaviour
         // Create and add the ememy sprite.
         spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
         spriteRenderer.sprite = Resources.Load<Sprite>("FFFFFF-1");
-        spriteRenderer.transform.localScale = new Vector3(25, 25, 1);
+        spriteRenderer.transform.localScale = new Vector3(WIDTH * 100, HEIGHT * 100, 1);
         Color = Color.black;
 
         // Start facing down. Towards the camera.
         Direction = Vector3.down;
+    }
+
+    // Update.
+    private void Update()
+    {
+        Vector3 velocity = Vector3.zero;
+
+        // If not jumping.
+        // Apply gravity.
+        velocity.y += -9.8f * Time.deltaTime;
+
+        transform.Translate(velocity);
+
+        // Check if off-screen and reset if necessary.
+        CheckBounds();
+    }
+
+    // Check the position relative to the viewport.
+    private void CheckBounds()
+    {
+        // Return if the main camera is null.
+        if (Camera.main == null)
+        {
+            return;
+        }
+
+        // Check position relative to the viewport.
+        AABB aabb = AABB;
+        Vector3 viewportMin = Camera.main.ViewportToWorldPoint(Vector3.zero);
+        Vector3 viewportMax = Camera.main.ViewportToWorldPoint(Vector3.one);
+        Vector3 newPosition = aabb.Center;
+
+        bool adjustmentRequired = false;
+        if (aabb.Min.x < viewportMin.x)
+        {
+            newPosition.x = viewportMin.x + aabb.Extents.x;
+            adjustmentRequired = true;
+        }
+        else if (aabb.Max.x > viewportMax.x)
+        {
+            newPosition.x = viewportMax.x - aabb.Extents.x;
+            adjustmentRequired = true;
+        }
+        if (aabb.Min.y < viewportMin.y)
+        {
+            newPosition.y = viewportMin.y + aabb.Extents.y;
+            adjustmentRequired = true;
+        }
+        else if (aabb.Max.y > viewportMax.y)
+        {
+            newPosition.y = viewportMax.y - aabb.Extents.y;
+            adjustmentRequired = true;
+        }
+
+        // Modify the transform's position if an adjustment is required.
+        if (adjustmentRequired)
+        {
+            transform.position = newPosition;
+        }
     }
 
     // Die.
