@@ -2,6 +2,34 @@
 
 public class Player : MonoBehaviour
 {
+    private enum PlayerState
+    {
+        None,
+        Idle,
+        Jumping,
+        Falling
+    }
+    private PlayerState state = PlayerState.Falling;
+    private PlayerState State {
+        get { return state; }
+        set {
+            state = value;
+            switch (state)
+            {
+                case PlayerState.Idle:
+                    break;
+
+                case PlayerState.Falling:
+                    break;
+
+                case PlayerState.Jumping:
+                    jumpVelocity.y = JUMP;
+                    break;
+            }
+        }
+    }
+
+
     private const float WIDTH = .25f;
     private const float HEIGHT = .25f;
 
@@ -29,9 +57,10 @@ public class Player : MonoBehaviour
             activeWeaponSlot = value;
         }
     }
-
-    // Speed.
+    
     private const float SPEED = 10;
+    private const float GRAVITY = -9.8f;
+    private const float JUMP = 15;
 
     // The player's primary weapon.
     public Weapon PrimaryWeapon {
@@ -44,6 +73,8 @@ public class Player : MonoBehaviour
         get;
         private set;
     }
+
+    private Vector3 jumpVelocity = Vector3.zero;
 
     // Vector that represents the direction the player is facing.
     private Vector3 direction;
@@ -95,11 +126,37 @@ public class Player : MonoBehaviour
     {
         float x = Input.GetAxis("Horizontal");
         float y = Input.GetAxis("Vertical");
-        Vector3 velocity = new Vector3(x, y) * SPEED * Time.deltaTime;
 
-        // If not jumping.
-        // Apply gravity.
-        velocity.y += -9.8f * Time.deltaTime;
+        if (state.Equals(PlayerState.Idle) &&
+            Input.GetButtonDown("Jump"))
+        {
+            State = PlayerState.Jumping;
+        }
+        Vector3 velocity = new Vector3(x, 0) * SPEED * Time.deltaTime;
+
+        switch (state)
+        {
+            case PlayerState.Falling:
+                // Apply gravity.
+                velocity.y += -9.8f * Time.deltaTime;
+                break;
+
+            case PlayerState.Jumping:
+                // Apply jump velocity.
+                velocity += jumpVelocity * Time.deltaTime;
+
+                // Apply gravity.
+                velocity.y += GRAVITY * Time.deltaTime;
+
+                // Decrease jump velocity.
+                jumpVelocity.y += GRAVITY * Time.deltaTime;
+                if (jumpVelocity.y <= 0)
+                {
+                    jumpVelocity = Vector3.zero;
+                    State = PlayerState.Falling;
+                }
+                break;
+        }
 
         transform.Translate(velocity);
 
@@ -155,7 +212,7 @@ public class Player : MonoBehaviour
             case WeaponSlot.Primary:
                 PrimaryWeapon = weapon;
                 break;
-
+                
             case WeaponSlot.Secondary:
                 SecondaryWeapon = weapon;
                 break;
@@ -192,6 +249,7 @@ public class Player : MonoBehaviour
         {
             newPosition.y = viewportMin.y + aabb.Extents.y;
             adjustmentRequired = true;
+            State = PlayerState.Idle;
         }
         else if (aabb.Max.y > viewportMax.y)
         {
