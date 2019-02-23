@@ -2,6 +2,14 @@
 
 public class Player : MonoBehaviour
 {
+    private const float WIDTH = .25f;
+    private const float HEIGHT = .25f;
+
+    private const float SPEED = 10;
+    private const float GRAVITY = -15;
+    private const float FALL = -15;
+    private const float JUMP = 20;
+
     private enum PlayerState
     {
         None,
@@ -29,10 +37,6 @@ public class Player : MonoBehaviour
         }
     }
 
-
-    private const float WIDTH = .25f;
-    private const float HEIGHT = .25f;
-
     // Create the player.
     public static Player Create(Transform parent)
     {
@@ -57,10 +61,6 @@ public class Player : MonoBehaviour
             activeWeaponSlot = value;
         }
     }
-    
-    private const float SPEED = 10;
-    private const float GRAVITY = -9.8f;
-    private const float JUMP = 15;
 
     // The player's primary weapon.
     public Weapon PrimaryWeapon {
@@ -138,7 +138,7 @@ public class Player : MonoBehaviour
         {
             case PlayerState.Falling:
                 // Apply gravity.
-                velocity.y += -9.8f * Time.deltaTime;
+                velocity.y += GRAVITY * Time.deltaTime;
                 break;
 
             case PlayerState.Jumping:
@@ -149,7 +149,7 @@ public class Player : MonoBehaviour
                 velocity.y += GRAVITY * Time.deltaTime;
 
                 // Decrease jump velocity.
-                jumpVelocity.y += GRAVITY * Time.deltaTime;
+                jumpVelocity.y += FALL * Time.deltaTime;
                 if (jumpVelocity.y <= 0)
                 {
                     jumpVelocity = Vector3.zero;

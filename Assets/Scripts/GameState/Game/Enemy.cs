@@ -5,6 +5,8 @@ public class Enemy : MonoBehaviour
     private const float WIDTH = .25f;
     private const float HEIGHT = .25f;
 
+    private const float GRAVITY = -15;
+
     // Create an enemy.
     public static Enemy Create(Transform parent)
     {
@@ -103,7 +105,7 @@ public class Enemy : MonoBehaviour
 
         // If not jumping.
         // Apply gravity.
-        velocity.y += -9.8f * Time.deltaTime;
+        velocity.y += GRAVITY * Time.deltaTime;
 
         transform.Translate(velocity);
 
