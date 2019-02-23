@@ -166,7 +166,7 @@ public class Player : MonoBehaviour
         // Update direction.
         float absX = Mathf.Abs(x);
         float absY = Mathf.Abs(y);
-        if (absX > absY)
+        if (absX >= absY)
         {
             if (x < 0)
             {
