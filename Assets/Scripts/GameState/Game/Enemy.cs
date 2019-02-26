@@ -6,6 +6,10 @@ public class Enemy : MonoBehaviour
     private const float HEIGHT = .25f;
 
     private const float GRAVITY = -15;
+    private const float SPEED = 0;
+
+    private readonly Color MAIN_COLOR = Color.blue;
+    private readonly Color HIT_COLOR = Color.red;
 
     // Create an enemy.
     public static Enemy Create(Transform parent)
@@ -18,9 +22,6 @@ public class Enemy : MonoBehaviour
 
         return enemy;
     }
-
-    // Speed.
-    private const float SPEED = 0;
 
     // Vector that represents the direction the enemy is facing.
     private Vector3 direction;
@@ -92,7 +93,7 @@ public class Enemy : MonoBehaviour
         spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
         spriteRenderer.sprite = Resources.Load<Sprite>("FFFFFF-1");
         spriteRenderer.transform.localScale = new Vector3(WIDTH * 100, HEIGHT * 100, 1);
-        Color = Color.black;
+        Color = MAIN_COLOR;
 
         // Start facing down. Towards the camera.
         Direction = Vector3.down;
@@ -101,6 +102,10 @@ public class Enemy : MonoBehaviour
     // Update.
     private void Update()
     {
+        // Reset enemy in case it was hit last collision cycle.
+        Color = MAIN_COLOR;
+
+        // Reset velocity.
         Vector3 velocity = Vector3.zero;
 
         // If not jumping.
@@ -155,6 +160,13 @@ public class Enemy : MonoBehaviour
         {
             transform.position = newPosition;
         }
+    }
+
+    // Take damage.
+    public void TakeDamage()
+    {
+        // Set color to hit color.
+        Color = HIT_COLOR;
     }
 
     // Die.

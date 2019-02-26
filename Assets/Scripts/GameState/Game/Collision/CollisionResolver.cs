@@ -15,8 +15,26 @@ public class CollisionResolver : MonoBehaviour
         instance.bullets.Add(bullet);
     }
 
+    public static void AddPlatform(Platform platform)
+    {
+        instance.platforms.Add(platform);
+    }
+
+    public static void AddWall(Wall wall)
+    {
+        instance.walls.Add(wall);
+    }
+
+    public static void AddPlayer(Player player)
+    {
+        instance.players.Add(player);
+    }
+
     private List<Bullet> bullets = new List<Bullet>();
     private List<Enemy> enemies = new List<Enemy>();
+    private List<Platform> platforms = new List<Platform>();
+    private List<Wall> walls = new List<Wall>();
+    private List<Player> players = new List<Player>();
 
     // Self-initialize.
     private void Awake()
@@ -25,17 +43,18 @@ public class CollisionResolver : MonoBehaviour
     }
 
     // Late update to check collisions.
-    private void Update()
+    private void LateUpdate()
     {
+        // Test enemies...
         foreach (Enemy enemy in enemies)
         {
             if (!enemy.isActiveAndEnabled) continue;
-            enemy.Color = Color.black;
 
             // Calculate broad test enemy AABB and velocity.
             Vector3 va = enemy.Velocity * Time.deltaTime;
             AABB a = MostSeparatedPointsOnAABB(new Vector3[] { enemy.AABB.Min, enemy.AABB.Max, enemy.AABB.Min + va, enemy.AABB.Max + va });
 
+            // ... against bullets.
             foreach (Bullet bullet in bullets)
             {
                 if (!bullet.isActiveAndEnabled) continue;
@@ -54,8 +73,35 @@ public class CollisionResolver : MonoBehaviour
                 // Result conditional.
                 if (result == 1)
                 {
-                    enemy.Color = Color.red;
+                    enemy.TakeDamage();
                     bullet.Reset();
+                }
+            }
+        }
+
+        // Test players...
+        foreach (Player player in players)
+        {
+            if (!player.isActiveAndEnabled) continue;
+
+            // Calculate borad test player AABB and velocity.
+            Vector3 va = player.Velocity * Time.deltaTime;
+            AABB a = MostSeparatedPointsOnAABB(new Vector3[] { player.AABB.Min, player.AABB.Max, player.AABB.Min + va, player.AABB.Max + va });
+
+            // ... against walls.
+            foreach (Wall wall in walls)
+            {
+                // Broad test.
+                int result = TestAABBAABB(a, wall.AABB);
+                if (result == 1)
+                {
+                    // Narrow test.
+                    result = IntersectMovingAABBAABB(player.AABB, wall.AABB, va, Vector3.zero);
+                }
+                // Result conditional.
+                if (result == 1)
+                {
+                    Debug.Log("Player in wall.");
                 }
             }
         }

@@ -43,6 +43,9 @@ public class Player : MonoBehaviour
         // Create a game object and add a player script to it.
         Player player = new GameObject("Player", typeof(Player)).GetComponent<Player>();
         player.transform.SetParent(parent);
+
+        CollisionResolver.AddPlayer(player);
+
         return player;
     }
 
@@ -86,6 +89,12 @@ public class Player : MonoBehaviour
             direction = value;
             // TODO Set animation group from the direction the player is facing.
         }
+    }
+
+    // Velocity.
+    public Vector3 Velocity {
+        get;
+        private set;
     }
 
     // Collision AABB.
@@ -158,7 +167,8 @@ public class Player : MonoBehaviour
                 break;
         }
 
-        transform.Translate(velocity);
+        Velocity = velocity;
+        transform.Translate(Velocity);
 
         // Check if off-screen and reset if necessary.
         CheckBounds();
