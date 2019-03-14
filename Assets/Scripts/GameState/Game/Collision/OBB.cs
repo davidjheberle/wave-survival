@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public struct OBB
+public class OBB
 {
     // Center point.
     public Vector3 c;

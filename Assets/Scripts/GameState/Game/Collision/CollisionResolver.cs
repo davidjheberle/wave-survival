@@ -64,14 +64,14 @@ public class CollisionResolver : MonoBehaviour
                 AABB b = MostSeparatedPointsOnAABB(new Vector3[] { bullet.AABB.Min, bullet.AABB.Max, bullet.AABB.Min + vb, bullet.AABB.Max + vb });
 
                 // Broad test.
-                int result = TestAABBAABB(a, b);
-                if (result == 1)
+                Hit? hit = TestAABBAABB(a, b);
+                if (hit != null)
                 {
                     // Narrow test.
-                    result = IntersectMovingAABBAABB(enemy.AABB, bullet.AABB, va, vb);
+                    hit = IntersectMovingAABBAABB(enemy.AABB, bullet.AABB, va, vb);
                 }
-                // Result conditional.
-                if (result == 1)
+                // Final hit result.
+                if (hit != null)
                 {
                     enemy.TakeDamage();
                     bullet.Reset();
@@ -84,7 +84,7 @@ public class CollisionResolver : MonoBehaviour
         {
             if (!player.isActiveAndEnabled) continue;
 
-            // Calculate borad test player AABB and velocity.
+            // Calculate broad test player AABB and velocity.
             Vector3 va = player.Velocity * Time.deltaTime;
             AABB a = MostSeparatedPointsOnAABB(new Vector3[] { player.AABB.Min, player.AABB.Max, player.AABB.Min + va, player.AABB.Max + va });
 
@@ -92,35 +92,73 @@ public class CollisionResolver : MonoBehaviour
             foreach (Wall wall in walls)
             {
                 // Broad test.
-                int result = TestAABBAABB(a, wall.AABB);
-                if (result == 1)
+                Hit? hit = TestAABBAABB(a, wall.AABB);
+                if (hit != null)
                 {
                     // Narrow test.
-                    result = IntersectMovingAABBAABB(player.AABB, wall.AABB, va, Vector3.zero);
+                    hit = IntersectMovingAABBAABB(player.AABB, wall.AABB, va, Vector3.zero);
                 }
-                // Result conditional.
-                if (result == 1)
+                // Final hit result.
+                if (hit != null)
                 {
                     Debug.Log("Player in wall.");
+
+                    // Stop the player in the collision direction.
+                    // Find the direction the player came from.
+                    // Move the player out of the wall in that direction.
                 }
             }
         }
     }
 
-    private int TestAABBAABB(AABB a, AABB b)
+    private Hit? TestAABBAABB(AABB a, AABB b)
     {
-        if (Mathf.Abs(a.Center[0] - b.Center[0]) > (a.Extents[0] + b.Extents[0])) return 0;
-        if (Mathf.Abs(a.Center[1] - b.Center[1]) > (a.Extents[1] + b.Extents[1])) return 0;
-        if (Mathf.Abs(a.Center[2] - b.Center[2]) > (a.Extents[2] + b.Extents[2])) return 0;
-        return 1;
+        //if (Mathf.Abs(a.Center[0] - b.Center[0]) > (a.Extents[0] + b.Extents[0])) return null;
+        //if (Mathf.Abs(a.Center[1] - b.Center[1]) > (a.Extents[1] + b.Extents[1])) return null;
+        //if (Mathf.Abs(a.Center[2] - b.Center[2]) > (a.Extents[2] + b.Extents[2])) return null;
+
+        Vector3 centerDifference = a.Center - b.Center;
+        Vector3 extentsSum = a.Extents + b.Extents;
+        float testX = extentsSum.x - Mathf.Abs(centerDifference.x);
+        float testY = extentsSum.y - Mathf.Abs(centerDifference.y);
+        float testZ = extentsSum.z - Mathf.Abs(centerDifference.z);
+        if (testX <= 0) return null;
+        if (testY <= 0) return null;
+        if (testZ <= 0) return null;
+
+        if (testX < testY && testX < testZ)
+        {
+            float signX = Mathf.Sign(centerDifference.x);
+            float deltaX = testX * signX;
+            float normalX = signX;
+            float posX = a.Center.x + (a.Extents.x * signX);
+            return new Hit(new Vector3(posX, 0, 0), new Vector3(deltaX, 0, 0), new Vector3(normalX, 0, 0));
+        }
+        else if (testY < testX && testY < testZ)
+        {
+            float signY = Mathf.Sign(centerDifference.y);
+            float deltaY = testY * signY;
+            float normalY = signY;
+            float posY = a.Center.y + (a.Extents.y * signY);
+            return new Hit(new Vector3(0, posY, 0), new Vector3(0, deltaY, 0), new Vector3(0, normalY, 0));
+        }
+        else
+        {
+            float signZ = Mathf.Sign(centerDifference.z);
+            float deltaZ = testZ * signZ;
+            float normalZ = signZ;
+            float posZ = a.Center.z + (a.Extents.z * signZ);
+            return new Hit(new Vector3(0, 0, posZ), new Vector3(0, 0, deltaZ), new Vector3(0, 0, normalZ));
+        }
     }
 
-    private int IntersectMovingAABBAABB(AABB a, AABB b, Vector3 va, Vector3 vb)
+    private Hit? IntersectMovingAABBAABB(AABB a, AABB b, Vector3 va, Vector3 vb)
     {
         // Exit early if 'a' and 'b' are initially overlapping.
-        if (TestAABBAABB(a, b) == 1)
+        Hit? hit = TestAABBAABB(a, b);
+        if (hit != null)
         {
-            return 1;
+            return hit;
         }
 
         // Use relative velocity.
@@ -136,13 +174,13 @@ public class CollisionResolver : MonoBehaviour
         {
             if (v[i] < 0f)
             {
-                if (b.Max[i] < a.Min[i]) return 0;      // Nonintersecting and moving apart.
+                if (b.Max[i] < a.Min[i]) return null;      // Nonintersecting and moving apart.
                 if (a.Max[i] < b.Min[i]) tfirst = Mathf.Max((a.Max[i] - b.Min[i]) / v[i], tfirst);
                 if (b.Max[i] > a.Min[i]) tlast = Mathf.Min((a.Min[i] - b.Max[i]) / v[i], tlast);
             }
             if (v[i] > 0f)
             {
-                if (b.Min[i] > a.Max[i]) return 0;      // Nonintersecting and moving apart.
+                if (b.Min[i] > a.Max[i]) return null;      // Nonintersecting and moving apart.
                 if (b.Max[i] < a.Min[i]) tfirst = Mathf.Max((a.Min[i] - b.Max[i]) / v[i], tfirst);
                 if (a.Max[i] > b.Min[i]) tlast = Mathf.Min((a.Max[i] - b.Min[i]) / v[i], tlast);
             }
@@ -150,13 +188,13 @@ public class CollisionResolver : MonoBehaviour
             // No overlap possible if time of first contact occurs after time of last contact.
             if (tfirst > tlast)
             {
-                return 0;
+                return null;
             }
         }
-        return 1;
+        return new Hit();
     }
 
-    private int TestOBBOBB(OBB a, OBB b)
+    private Hit? TestOBBOBB(OBB a, OBB b)
     {
         float ra, rb;
         Matrix4x4 r = new Matrix4x4();
@@ -216,7 +254,7 @@ public class CollisionResolver : MonoBehaviour
             rb = b.e[0] * absR[i, 0] + b.e[1] * absR[i, 1] + b.e[2] * absR[i, 2];
             if (Mathf.Abs(t[i]) > ra + rb)
             {
-                return 0;
+                return null;
             }
         }
 
@@ -227,7 +265,7 @@ public class CollisionResolver : MonoBehaviour
             rb = b.e[i];
             if (Mathf.Abs(t[0] * r[0, i] + t[1] * r[1, i] + t[2] * r[2, i]) > ra + rb)
             {
-                return 0;
+                return null;
             }
         }
 
@@ -236,7 +274,7 @@ public class CollisionResolver : MonoBehaviour
         rb = b.e[1] * absR[0, 2] + b.e[2] * absR[0, 1];
         if (Mathf.Abs(t[2] * r[1, 0] - t[1] * r[2, 0]) > ra + rb)
         {
-            return 0;
+            return null;
         }
 
         // Test axis L = A0 x B1.
@@ -244,7 +282,7 @@ public class CollisionResolver : MonoBehaviour
         rb = b.e[0] * absR[0, 2] + b.e[2] * absR[0, 0];
         if (Mathf.Abs(t[2] * r[1, 1] - t[1] * r[2, 1]) > ra + rb)
         {
-            return 0;
+            return null;
         }
 
         // Test axis L = A0 x B2.
@@ -252,7 +290,7 @@ public class CollisionResolver : MonoBehaviour
         rb = b.e[0] * absR[0, 2] + b.e[1] * absR[0, 0];
         if (Mathf.Abs(t[2] * r[1, 2] - t[1] * r[2, 2]) > ra + rb)
         {
-            return 0;
+            return null;
         }
 
         // Test axis L = A1 x B0.
@@ -260,7 +298,7 @@ public class CollisionResolver : MonoBehaviour
         rb = b.e[1] * absR[1, 2] + b.e[2] * absR[1, 1];
         if (Mathf.Abs(t[0] * r[2, 0] - t[2] * r[0, 0]) > ra + rb)
         {
-            return 0;
+            return null;
         }
 
         // Test axis L = A1 x B1.
@@ -268,7 +306,7 @@ public class CollisionResolver : MonoBehaviour
         rb = b.e[0] * absR[1, 2] + b.e[2] * absR[1, 0];
         if (Mathf.Abs(t[0] * r[2, 1] - t[2] * r[0, 1]) > ra + rb)
         {
-            return 0;
+            return null;
         }
 
         // Test axis L = A1 x B2.
@@ -276,7 +314,7 @@ public class CollisionResolver : MonoBehaviour
         rb = b.e[0] * absR[1, 1] + b.e[1] * absR[1, 0];
         if (Mathf.Abs(t[0] * r[2, 2] - t[2] * r[0, 2]) > ra + rb)
         {
-            return 0;
+            return null;
         }
 
         // Test axis L = A2 x B0.
@@ -284,7 +322,7 @@ public class CollisionResolver : MonoBehaviour
         rb = b.e[1] * absR[2, 2] + b.e[2] * absR[2, 1];
         if (Mathf.Abs(t[1] * r[0, 0] - t[0] * r[1, 0]) > ra + rb)
         {
-            return 0;
+            return null;
         }
 
         // Test axis L = A2 x B1.
@@ -292,7 +330,7 @@ public class CollisionResolver : MonoBehaviour
         rb = b.e[0] * absR[2, 2] + b.e[2] * absR[2, 0];
         if (Mathf.Abs(t[1] * r[0, 1] - t[0] * r[1, 1]) > ra + rb)
         {
-            return 0;
+            return null;
         }
 
         // Test axis L = A2 x B2.
@@ -300,11 +338,11 @@ public class CollisionResolver : MonoBehaviour
         rb = b.e[0] * absR[2, 1] + b.e[1] * absR[2, 0];
         if (Mathf.Abs(t[1] * r[0, 2] - t[0] * r[1, 2]) > ra + rb)
         {
-            return 0;
+            return null;
         }
 
         // Since no separating axis is found, the OBBs must be intersecting.
-        return 1;
+        return new Hit();
     }
 
     public AABB MostSeparatedPointsOnAABB(Vector3[] points)
