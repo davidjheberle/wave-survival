@@ -64,7 +64,7 @@ public class CollisionResolver : MonoBehaviour
                 AABB b = MostSeparatedPointsOnAABB(new Vector3[] { bullet.AABB.Min, bullet.AABB.Max, bullet.AABB.Min + vb, bullet.AABB.Max + vb });
 
                 // Broad test.
-                Hit? hit = TestAABBAABB(a, b);
+                Hit hit = TestAABBAABB(a, b);
                 if (hit != null)
                 {
                     // Narrow test.
@@ -92,7 +92,7 @@ public class CollisionResolver : MonoBehaviour
             foreach (Wall wall in walls)
             {
                 // Broad test.
-                Hit? hit = TestAABBAABB(a, wall.AABB);
+                Hit hit = TestAABBAABB(a, wall.AABB);
                 if (hit != null)
                 {
                     // Narrow test.
@@ -111,7 +111,7 @@ public class CollisionResolver : MonoBehaviour
         }
     }
 
-    private Hit? TestAABBAABB(AABB a, AABB b)
+    private Hit TestAABBAABB(AABB a, AABB b)
     {
         //if (Mathf.Abs(a.Center[0] - b.Center[0]) > (a.Extents[0] + b.Extents[0])) return null;
         //if (Mathf.Abs(a.Center[1] - b.Center[1]) > (a.Extents[1] + b.Extents[1])) return null;
@@ -152,10 +152,10 @@ public class CollisionResolver : MonoBehaviour
         }
     }
 
-    private Hit? IntersectMovingAABBAABB(AABB a, AABB b, Vector3 va, Vector3 vb)
+    private Hit IntersectMovingAABBAABB(AABB a, AABB b, Vector3 va, Vector3 vb)
     {
         // Exit early if 'a' and 'b' are initially overlapping.
-        Hit? hit = TestAABBAABB(a, b);
+        Hit hit = TestAABBAABB(a, b);
         if (hit != null)
         {
             return hit;
@@ -191,10 +191,10 @@ public class CollisionResolver : MonoBehaviour
                 return null;
             }
         }
-        return new Hit();
+        return new Hit(Vector3.zero, Vector3.zero, Vector3.zero);
     }
 
-    private Hit? TestOBBOBB(OBB a, OBB b)
+    private Hit TestOBBOBB(OBB a, OBB b)
     {
         float ra, rb;
         Matrix4x4 r = new Matrix4x4();
@@ -342,7 +342,7 @@ public class CollisionResolver : MonoBehaviour
         }
 
         // Since no separating axis is found, the OBBs must be intersecting.
-        return new Hit();
+        return new Hit(Vector3.zero, Vector3.zero, Vector3.zero);
     }
 
     public AABB MostSeparatedPointsOnAABB(Vector3[] points)
