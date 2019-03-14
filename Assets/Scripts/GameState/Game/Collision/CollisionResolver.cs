@@ -124,7 +124,7 @@ public class CollisionResolver : MonoBehaviour
         float testZ = extentsSum.z - Mathf.Abs(centerDifference.z);
         if (testX <= 0) return null;
         if (testY <= 0) return null;
-        if (testZ <= 0) return null;
+        //if (testZ <= 0) return null;
 
         if (testX < testY && testX < testZ)
         {
