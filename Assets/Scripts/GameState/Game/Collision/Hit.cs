@@ -3,7 +3,7 @@
 public class Hit
 {
     // The point of contact between the two objects (or an estimation of it).
-    public Vector3 Position {
+    public Vector2 Position {
         get;
         private set;
     }
@@ -12,13 +12,13 @@ public class Hit
     // Overlap between the two objects, and is a vector that can be added to
     // the colliding object’s position to move it back to a non-colliding
     // state.
-    public Vector3 Delta {
+    public Vector2 Delta {
         get;
         private set;
     }
 
     // Surface normal at the point of contact.
-    public Vector3 Normal {
+    public Vector2 Normal {
         get;
         private set;
     }
@@ -34,7 +34,7 @@ public class Hit
     // d - delta overlap of collision.
     // n - normal of the surface of collision.
     // t - time of collistion.
-    public Hit(Vector3 p, Vector3 d, Vector3 n, float t = 0)
+    public Hit(Vector2 p, Vector2 d, Vector2 n, float t = 0)
     {
         this.Position = p;
         this.Delta = d;

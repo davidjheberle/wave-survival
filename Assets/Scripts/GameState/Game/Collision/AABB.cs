@@ -3,33 +3,33 @@
 public class AABB
 {
     // Center point.
-    public Vector3 Center {
+    public Vector2 Center {
         get;
         private set;
     }
 
     // Halfwidth extents along each axis.
-    public Vector3 Extents {
+    public Vector2 Extents {
         get;
         private set;
     }
 
     // Min point.
-    public Vector3 Min {
+    public Vector2 Min {
         get {
             return Center - Extents;
         }
     }
 
     // Max point.
-    public Vector3 Max {
+    public Vector2 Max {
         get {
             return Center + Extents;
         }
     }
 
     // Size.
-    public Vector3 Size {
+    public Vector2 Size {
         get {
             return Extents * 2f;
         }
@@ -37,7 +37,7 @@ public class AABB
 
     // c - center point.
     // e - positive halfwidth extents along each axis.
-    public AABB(Vector3 c, Vector3 e)
+    public AABB(Vector2 c, Vector2 e)
     {
         this.Center = c;
         this.Extents = e;
@@ -46,8 +46,8 @@ public class AABB
     // Test for an intersect against another AABB.
     public Hit IntersectAABB(AABB other)
     {
-        Vector3 centerDifference = other.Center - this.Center;
-        Vector3 extentsSum = other.Extents + this.Extents;
+        Vector2 centerDifference = other.Center - this.Center;
+        Vector2 extentsSum = other.Extents + this.Extents;
 
         float testX = extentsSum.x - Mathf.Abs(centerDifference.x);
         if (testX <= 0) return null;
@@ -55,74 +55,56 @@ public class AABB
         float testY = extentsSum.y - Mathf.Abs(centerDifference.y);
         if (testY <= 0) return null;
 
-        float testZ = extentsSum.z - Mathf.Abs(centerDifference.z);
-        if (testZ <= 0) return null;
-
         if (testX < testY)
         {
             float signX = Mathf.Sign(centerDifference.x);
             float deltaX = testX * signX;
             float normalX = signX;
             float posX = this.Center.x + (this.Extents.x * signX);
-            return new Hit(new Vector3(posX, 0, 0), new Vector3(deltaX, 0, 0), new Vector3(normalX, 0, 0));
+            return new Hit(new Vector2(posX, 0), new Vector2(deltaX, 0), new Vector2(normalX, 0));
         }
-        else if (testY < testZ)
+        else
         {
             float signY = Mathf.Sign(centerDifference.y);
             float deltaY = testY * signY;
             float normalY = signY;
             float posY = this.Center.y + (this.Extents.y * signY);
-            return new Hit(new Vector3(0, posY, 0), new Vector3(0, deltaY, 0), new Vector3(0, normalY, 0));
-        }
-        else
-        {
-            float signZ = Mathf.Sign(centerDifference.z);
-            float deltaZ = testZ * signZ;
-            float normalZ = signZ;
-            float posZ = this.Center.z + (this.Extents.z * signZ);
-            return new Hit(new Vector3(0, 0, posZ), new Vector3(0, 0, deltaZ), new Vector3(0, 0, normalZ));
+            return new Hit(new Vector2(0, posY), new Vector2(0, deltaY), new Vector2(0, normalY));
         }
     }
 
     // Test for an intersect with a segment.
-    public Hit IntersectSegment(Vector3 position, Vector3 delta, Vector3 padding)
+    public Hit IntersectSegment(Vector2 position, Vector2 delta, Vector2 padding)
     {
-        Vector3 scale = new Vector3(1f / delta.x, 1f / delta.y, 1f / delta.z);
-        Vector3 sign = new Vector3(Mathf.Sign(scale.x), Mathf.Sign(scale.y), Mathf.Sign(scale.z));
-        Vector3 nearTime = new Vector3(
+        Vector2 scale = new Vector2(1f / delta.x, 1f / delta.y);
+        Vector2 sign = new Vector2(Mathf.Sign(scale.x), Mathf.Sign(scale.y));
+        Vector2 nearTime = new Vector2(
             (this.Center.x - sign.x * (this.Extents.x + padding.x) - position.x) * scale.x,
-            (this.Center.y - sign.y * (this.Extents.y + padding.y) - position.y) * scale.y,
-            (this.Center.z - sign.z * (this.Extents.z + padding.z) - position.z) * scale.z);
-        Vector3 farTime = new Vector3(
+            (this.Center.y - sign.y * (this.Extents.y + padding.y) - position.y) * scale.y);
+        Vector2 farTime = new Vector2(
             (this.Center.x + sign.x * (this.Extents.x + padding.x) - position.x) * scale.x,
-            (this.Center.y + sign.y * (this.Extents.y + padding.y) - position.y) * scale.y,
-            (this.Center.z + sign.z * (this.Extents.z + padding.z) - position.z) * scale.z);
+            (this.Center.y + sign.y * (this.Extents.y + padding.y) - position.y) * scale.y);
 
         if (nearTime.x > farTime.x ||
-            nearTime.y > farTime.y ||
-            nearTime.z > farTime.z)
+            nearTime.y > farTime.y)
         {
             return null;
         }
 
-        float maxNearTime = Mathf.Max(nearTime.x, nearTime.y, nearTime.z);
-        float minFarTime = Mathf.Min(farTime.x, farTime.y, farTime.z);
+        float maxNearTime = Mathf.Max(nearTime.x, nearTime.y);
+        float minFarTime = Mathf.Min(farTime.x, farTime.y);
 
         if (maxNearTime >= 1 || minFarTime <= 0) { return null; }
 
         float time = Mathf.Clamp01(maxNearTime);
-        Vector3 normal;
+        Vector2 normal;
         if (nearTime.x > nearTime.y)
         {
-            normal = new Vector3(-sign.x, 0, 0);
-        }
-        else if (nearTime.y > nearTime.z)
-        {
-            normal = new Vector3(0, -sign.y, 0);
+            normal = new Vector2(-sign.x, 0);
         }
         else
         {
-            normal = new Vector3(0, 0, -sign.z);
+            normal = new Vector2(0, -sign.y);
         }
         delta = time * delta;
         position = position + delta;
@@ -130,12 +112,12 @@ public class AABB
     }
 
     // Test with a sweep against another AABB.
-    public Sweep SweepAABB(AABB other, Vector3 delta)
+    public Sweep SweepAABB(AABB other, Vector2 delta)
     {
         Hit hit;
 
         // If there is no delta do a static test.
-        if (delta.Equals(Vector3.zero))
+        if (delta.Equals(Vector2.zero))
         {
             hit = this.IntersectAABB(other);
             float time = 1;
@@ -151,8 +133,8 @@ public class AABB
             if (hit != null)
             {
                 float time = Mathf.Clamp01(hit.Time - Mathf.Epsilon);
-                Vector3 position = other.Center + delta * time;
-                Vector3 direction = delta.normalized;
+                Vector2 position = other.Center + delta * time;
+                Vector2 direction = delta.normalized;
                 position.x = Mathf.Clamp(
                     position.x + direction.x * other.Extents.x,
                     this.Center.x - this.Extents.x,
@@ -161,15 +143,11 @@ public class AABB
                     position.y + direction.y * other.Extents.y,
                     this.Center.y - this.Extents.y,
                     this.Center.y + this.Extents.y);
-                position.z = Mathf.Clamp(
-                    position.z + direction.z * other.Extents.z,
-                    this.Center.z - this.Extents.z,
-                    this.Center.z + this.Extents.z);
                 return new Sweep(hit, position, time);
             }
             else
             {
-                Vector3 position = other.Center + delta;
+                Vector2 position = other.Center + delta;
                 return new Sweep(hit, position);
             }
         }

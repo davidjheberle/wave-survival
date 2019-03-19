@@ -80,8 +80,8 @@ public class Player : MonoBehaviour
     private Vector3 jumpVelocity = Vector3.zero;
 
     // Vector that represents the direction the player is facing.
-    private Vector3 direction;
-    public Vector3 Direction {
+    private Vector2 direction;
+    public Vector2 Direction {
         get {
             return direction;
         }
@@ -92,7 +92,7 @@ public class Player : MonoBehaviour
     }
 
     // Velocity.
-    public Vector3 Velocity {
+    public Vector2 Velocity {
         get;
         private set;
     }
@@ -106,7 +106,7 @@ public class Player : MonoBehaviour
     }
 
     // Public initialize.
-    public void Initialize(Vector3 position)
+    public void Initialize(Vector2 position)
     {
         transform.position = position;
     }
@@ -117,7 +117,7 @@ public class Player : MonoBehaviour
         // Create and add the player sprite.
         SpriteRenderer spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
         spriteRenderer.sprite = Resources.Load<Sprite>("FFFFFF-1");
-        spriteRenderer.transform.localScale = new Vector3(WIDTH * 100, HEIGHT * 100, 1);
+        spriteRenderer.transform.localScale = new Vector3(WIDTH * 100, HEIGHT * 100);
 
         // Set the active weapon slot.
         ActiveWeaponSlot = WeaponSlot.Primary;
@@ -127,7 +127,7 @@ public class Player : MonoBehaviour
         PrimaryWeapon.Owner = this;
 
         // Start facing down. Towards the camera.
-        Direction = Vector3.down;
+        Direction = Vector2.down;
     }
 
     // Update.
@@ -181,22 +181,22 @@ public class Player : MonoBehaviour
             if (x < 0)
             {
                 // Face left.
-                Direction = Vector3.left;
+                Direction = Vector2.left;
             } else if (x > 0)
             {
                 // Face right.
-                Direction = Vector3.right;
+                Direction = Vector2.right;
             }
         } else if (absY > absX)
         {
             if (y < 0)
             {
                 // Face down.
-                Direction = Vector3.down;
+                Direction = Vector2.down;
             } else if (y > 0)
             {
                 // Face up.
-                Direction = Vector3.up;
+                Direction = Vector2.up;
             }
         }
 
@@ -212,6 +212,13 @@ public class Player : MonoBehaviour
                     break;
             }
         }
+    }
+
+    // Enter the idle state.
+    public void Idle()
+    {
+        State = PlayerState.Idle;
+        Velocity = Vector2.zero;
     }
 
     // Equip a weapon in the active slot.
@@ -259,7 +266,7 @@ public class Player : MonoBehaviour
         {
             newPosition.y = viewportMin.y + aabb.Extents.y;
             adjustmentRequired = true;
-            State = PlayerState.Idle;
+            Idle();
         }
         else if (aabb.Max.y > viewportMax.y)
         {
