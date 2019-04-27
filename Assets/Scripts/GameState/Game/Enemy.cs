@@ -131,27 +131,27 @@ public class Enemy : MonoBehaviour
         AABB aabb = AABB;
         Vector3 viewportMin = Camera.main.ViewportToWorldPoint(Vector3.zero);
         Vector3 viewportMax = Camera.main.ViewportToWorldPoint(Vector3.one);
-        Vector3 newPosition = aabb.Center;
+        Vector3 newPosition = aabb.position;
 
         bool adjustmentRequired = false;
         if (aabb.Min.x < viewportMin.x)
         {
-            newPosition.x = viewportMin.x + aabb.Extents.x;
+            newPosition.x = viewportMin.x + aabb.half.x;
             adjustmentRequired = true;
         }
         else if (aabb.Max.x > viewportMax.x)
         {
-            newPosition.x = viewportMax.x - aabb.Extents.x;
+            newPosition.x = viewportMax.x - aabb.half.x;
             adjustmentRequired = true;
         }
         if (aabb.Min.y < viewportMin.y)
         {
-            newPosition.y = viewportMin.y + aabb.Extents.y;
+            newPosition.y = viewportMin.y + aabb.half.y;
             adjustmentRequired = true;
         }
         else if (aabb.Max.y > viewportMax.y)
         {
-            newPosition.y = viewportMax.y - aabb.Extents.y;
+            newPosition.y = viewportMax.y - aabb.half.y;
             adjustmentRequired = true;
         }
 
