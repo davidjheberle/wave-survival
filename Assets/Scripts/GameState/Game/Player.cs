@@ -6,32 +6,34 @@ public class Player : MonoBehaviour
     private const float HEIGHT = .25f;
 
     private const float SPEED = 10;
-    private const float GRAVITY = -15;
-    private const float FALL = -15;
-    private const float JUMP = 20;
+    private const float GRAVITY = -100;
+    private const float JUMP = 15;
 
     private enum PlayerState
     {
         None,
         Idle,
-        Jumping,
-        Falling
+        Jump,
+        Fall
     }
-    private PlayerState state = PlayerState.Falling;
-    private PlayerState State {
+    private PlayerState state = PlayerState.Fall;
+    private PlayerState State
+    {
         get { return state; }
-        set {
+        set
+        {
             state = value;
             switch (state)
             {
                 case PlayerState.Idle:
+                    this.Velocity = Vector2.zero;
                     break;
 
-                case PlayerState.Falling:
+                case PlayerState.Fall:
                     break;
 
-                case PlayerState.Jumping:
-                    jumpVelocity.y = JUMP;
+                case PlayerState.Jump:
+                    this.Velocity += new Vector2(0, JUMP);
                     break;
             }
         }
@@ -56,50 +58,61 @@ public class Player : MonoBehaviour
         Secondary
     }
     private WeaponSlot activeWeaponSlot;
-    private WeaponSlot ActiveWeaponSlot {
-        get {
+    private WeaponSlot ActiveWeaponSlot
+    {
+        get
+        {
             return activeWeaponSlot;
         }
-        set {
+        set
+        {
             activeWeaponSlot = value;
         }
     }
 
     // The player's primary weapon.
-    public Weapon PrimaryWeapon {
+    public Weapon PrimaryWeapon
+    {
         get;
         private set;
     }
 
     // The player's secondary weapon.
-    public Weapon SecondaryWeapon {
+    public Weapon SecondaryWeapon
+    {
         get;
         private set;
     }
 
-    private Vector3 jumpVelocity = Vector3.zero;
+    private Vector2 jumpVelocity = Vector3.zero;
 
     // Vector that represents the direction the player is facing.
     private Vector2 direction;
-    public Vector2 Direction {
-        get {
+    public Vector2 Direction
+    {
+        get
+        {
             return direction;
         }
-        private set {
+        private set
+        {
             direction = value;
             // TODO Set animation group from the direction the player is facing.
         }
     }
 
     // Velocity.
-    public Vector2 Velocity {
+    public Vector2 Velocity
+    {
         get;
         private set;
     }
 
     // Collision AABB.
-    public AABB AABB {
-        get {
+    public AABB AABB
+    {
+        get
+        {
             // Create a collision AABB.
             return new AABB(transform.position, new Vector3(WIDTH / 2f, HEIGHT / 2f, 0));
         }
@@ -108,7 +121,7 @@ public class Player : MonoBehaviour
     // Public initialize.
     public void Initialize(Vector2 position)
     {
-        transform.position = position;
+        this.transform.position = position;
     }
 
     // Self-initialize.
@@ -120,14 +133,14 @@ public class Player : MonoBehaviour
         spriteRenderer.transform.localScale = new Vector3(WIDTH * 100, HEIGHT * 100);
 
         // Set the active weapon slot.
-        ActiveWeaponSlot = WeaponSlot.Primary;
+        this.ActiveWeaponSlot = WeaponSlot.Primary;
 
         // Equip a pistol.
-        PrimaryWeapon = Pistol.Create(transform);
-        PrimaryWeapon.Owner = this;
+        this.PrimaryWeapon = Pistol.Create(transform);
+        this.PrimaryWeapon.Owner = this;
 
         // Start facing down. Towards the camera.
-        Direction = Vector2.down;
+        this.Direction = Vector2.down;
     }
 
     // Update.
@@ -139,39 +152,49 @@ public class Player : MonoBehaviour
         if (state.Equals(PlayerState.Idle) &&
             Input.GetButtonDown("Jump"))
         {
-            State = PlayerState.Jumping;
+            this.Jump();
         }
-        Vector3 velocity = new Vector3(x, 0) * SPEED * Time.deltaTime;
+        this.Velocity = new Vector2(x * SPEED, this.Velocity.y);
 
         switch (state)
         {
-            case PlayerState.Falling:
+            case PlayerState.Fall:
                 // Apply gravity.
-                velocity.y += GRAVITY * Time.deltaTime;
+                this.Velocity += new Vector2(0, GRAVITY) * Time.deltaTime;
                 break;
 
-            case PlayerState.Jumping:
-                // Apply jump velocity.
-                velocity += jumpVelocity * Time.deltaTime;
-
+            case PlayerState.Jump:
                 // Apply gravity.
-                velocity.y += GRAVITY * Time.deltaTime;
-
-                // Decrease jump velocity.
-                jumpVelocity.y += FALL * Time.deltaTime;
-                if (jumpVelocity.y <= 0)
-                {
-                    jumpVelocity = Vector3.zero;
-                    State = PlayerState.Falling;
-                }
+                this.Velocity += new Vector2(0, GRAVITY) * Time.deltaTime;
+                this.Fall();
                 break;
         }
 
-        Velocity = velocity;
-        transform.Translate(Velocity);
+        // Calculate broad test player AABB and velocity.
+        Vector2 va = this.Velocity * Time.deltaTime;
+
+        // Test walls...
+        foreach (Wall wall in CollisionResolver.GetWalls())
+        {
+            // Sweep test.
+            Sweep sweep = this.AABB.SweepAABB(wall.AABB, Vector2.zero - va);
+            if (sweep.hit != null)
+            {
+                this.Idle();
+                Debug.Log("HIT");
+
+                // Stop the player in the collision direction.
+                // Find the direction the player came from.
+                // Move the player out of the wall in that direction.
+            }
+            else
+            {
+                this.transform.Translate(va);
+            }
+        }
 
         // Check if off-screen and reset if necessary.
-        CheckBounds();
+        this.CheckBounds();
 
         // Update direction.
         float absX = Mathf.Abs(x);
@@ -181,31 +204,34 @@ public class Player : MonoBehaviour
             if (x < 0)
             {
                 // Face left.
-                Direction = Vector2.left;
-            } else if (x > 0)
+                this.Direction = Vector2.left;
+            }
+            else if (x > 0)
             {
                 // Face right.
-                Direction = Vector2.right;
+                this.Direction = Vector2.right;
             }
-        } else if (absY > absX)
+        }
+        else if (absY > absX)
         {
             if (y < 0)
             {
                 // Face down.
-                Direction = Vector2.down;
-            } else if (y > 0)
+                this.Direction = Vector2.down;
+            }
+            else if (y > 0)
             {
                 // Face up.
-                Direction = Vector2.up;
+                this.Direction = Vector2.up;
             }
         }
 
         if (Input.GetButtonDown("Fire1"))
         {
-            switch (ActiveWeaponSlot)
+            switch (this.ActiveWeaponSlot)
             {
                 case WeaponSlot.Primary:
-                    PrimaryWeapon.Use();
+                    this.PrimaryWeapon.Use();
                     break;
 
                 case WeaponSlot.Secondary:
@@ -217,21 +243,32 @@ public class Player : MonoBehaviour
     // Enter the idle state.
     public void Idle()
     {
-        State = PlayerState.Idle;
-        Velocity = Vector2.zero;
+        this.State = PlayerState.Idle;
+    }
+
+    // Enter the jump state.
+    public void Jump()
+    {
+        this.State = PlayerState.Jump;
+    }
+
+    // Enter the fall state.
+    public void Fall()
+    {
+        this.State = PlayerState.Fall;
     }
 
     // Equip a weapon in the active slot.
     private void EquipWeapon(Weapon weapon)
     {
-        switch (ActiveWeaponSlot)
+        switch (this.ActiveWeaponSlot)
         {
             case WeaponSlot.Primary:
-                PrimaryWeapon = weapon;
+                this.PrimaryWeapon = weapon;
                 break;
-                
+
             case WeaponSlot.Secondary:
-                SecondaryWeapon = weapon;
+                this.SecondaryWeapon = weapon;
                 break;
         }
     }
@@ -246,7 +283,7 @@ public class Player : MonoBehaviour
         }
 
         // Check position relative to the viewport.
-        AABB aabb = AABB;
+        AABB aabb = this.AABB;
         Vector3 viewportMin = Camera.main.ViewportToWorldPoint(Vector3.zero);
         Vector3 viewportMax = Camera.main.ViewportToWorldPoint(Vector3.one);
         Vector3 newPosition = aabb.position;
@@ -266,7 +303,7 @@ public class Player : MonoBehaviour
         {
             newPosition.y = viewportMin.y + aabb.half.y;
             adjustmentRequired = true;
-            Idle();
+            this.Idle();
         }
         else if (aabb.Max.y > viewportMax.y)
         {
@@ -277,7 +314,7 @@ public class Player : MonoBehaviour
         // Modify the transform's position if an adjustment is required.
         if (adjustmentRequired)
         {
-            transform.position = newPosition;
+            this.transform.position = newPosition;
         }
     }
 }

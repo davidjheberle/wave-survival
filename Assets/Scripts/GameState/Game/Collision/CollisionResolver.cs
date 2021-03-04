@@ -30,6 +30,31 @@ public class CollisionResolver : MonoBehaviour
         instance.players.Add(player);
     }
 
+    public static List<Bullet> GetBullets()
+    {
+        return instance.bullets;
+    }
+
+    public static List<Enemy> GetEnemies()
+    {
+        return instance.enemies;
+    }
+
+    public static List<Platform> GetPlatforms()
+    {
+        return instance.platforms;
+    }
+
+    public static List<Wall> GetWalls()
+    {
+        return instance.walls;
+    }
+
+    public static List<Player> GetPlayers()
+    {
+        return instance.players;
+    }
+
     private List<Bullet> bullets = new List<Bullet>();
     private List<Enemy> enemies = new List<Enemy>();
     private List<Platform> platforms = new List<Platform>();
@@ -46,30 +71,30 @@ public class CollisionResolver : MonoBehaviour
     private void LateUpdate()
     {
         // Test enemies...
-        foreach (Enemy enemy in enemies)
-        {
-            if (!enemy.isActiveAndEnabled) continue;
+        // foreach (Enemy enemy in enemies)
+        // {
+        //     if (!enemy.isActiveAndEnabled) continue;
 
-            // Calculate broad test enemy AABB and velocity.
-            Vector2 va = enemy.Velocity * Time.deltaTime;
+        //     // Calculate broad test enemy AABB and velocity.
+        //     Vector2 va = enemy.Velocity * Time.deltaTime;
 
-            // ... against bullets.
-            foreach (Bullet bullet in bullets)
-            {
-                if (!bullet.isActiveAndEnabled) continue;
+        //     // ... against bullets.
+        //     foreach (Bullet bullet in bullets)
+        //     {
+        //         if (!bullet.isActiveAndEnabled) continue;
 
-                // Calculate broad test bullet AABB and velocity.
-                Vector2 vb = bullet.Velocity * Time.deltaTime;
+        //         // Calculate broad test bullet AABB and velocity.
+        //         Vector2 vb = bullet.Velocity * Time.deltaTime;
 
-                // Sweep test.
-                Sweep sweep = enemy.AABB.SweepAABB(bullet.AABB, vb - va);
-                if (sweep.hit != null)
-                {
-                    enemy.TakeDamage();
-                    bullet.Reset();
-                }
-            }
-        }
+        //         // Sweep test.
+        //         Sweep sweep = enemy.AABB.SweepAABB(bullet.AABB, vb - va);
+        //         if (sweep.hit != null)
+        //         {
+        //             enemy.TakeDamage();
+        //             bullet.Reset();
+        //         }
+        //     }
+        // }
 
         // Test players...
         foreach (Player player in players)
