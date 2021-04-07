@@ -3,17 +3,17 @@
 public class Hit
 {
     public AABB collider;
-    public Vector2 position;
-    public Vector2 delta;
-    public Vector2 normal;
+    public Vector3 position;
+    public Vector3 delta;
+    public Vector3 normal;
     public float time;
 
     public Hit(AABB collider)
     {
         this.collider = collider;
-        this.position = Vector2.zero;
-        this.delta = Vector2.zero;
-        this.normal = Vector2.zero;
+        this.position = Vector3.zero;
+        this.delta = Vector3.zero;
+        this.normal = Vector3.zero;
         this.time = 0;
     }
 }

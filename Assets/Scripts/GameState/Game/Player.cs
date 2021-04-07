@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System;
 
 public class Player : MonoBehaviour
 {
@@ -26,14 +27,14 @@ public class Player : MonoBehaviour
             switch (state)
             {
                 case PlayerState.Idle:
-                    this.Velocity = Vector2.zero;
+                    this.Velocity = Vector3.zero;
                     break;
 
                 case PlayerState.Fall:
                     break;
 
                 case PlayerState.Jump:
-                    this.Velocity += new Vector2(0, JUMP);
+                    this.Velocity += new Vector3(0, JUMP);
                     break;
             }
         }
@@ -46,7 +47,7 @@ public class Player : MonoBehaviour
         Player player = new GameObject("Player", typeof(Player)).GetComponent<Player>();
         player.transform.SetParent(parent);
 
-        CollisionResolver.AddPlayer(player);
+        EntityTracker.AddPlayer(player);
 
         return player;
     }
@@ -84,11 +85,11 @@ public class Player : MonoBehaviour
         private set;
     }
 
-    private Vector2 jumpVelocity = Vector3.zero;
+    private Vector3 jumpVelocity = Vector3.zero;
 
     // Vector that represents the direction the player is facing.
-    private Vector2 direction;
-    public Vector2 Direction
+    private Vector3 direction;
+    public Vector3 Direction
     {
         get
         {
@@ -102,7 +103,7 @@ public class Player : MonoBehaviour
     }
 
     // Velocity.
-    public Vector2 Velocity
+    public Vector3 Velocity
     {
         get;
         private set;
@@ -119,7 +120,7 @@ public class Player : MonoBehaviour
     }
 
     // Public initialize.
-    public void Initialize(Vector2 position)
+    public void Initialize(Vector3 position)
     {
         this.transform.position = position;
     }
@@ -140,7 +141,7 @@ public class Player : MonoBehaviour
         this.PrimaryWeapon.Owner = this;
 
         // Start facing down. Towards the camera.
-        this.Direction = Vector2.down;
+        this.Direction = Vector3.down;
     }
 
     // Update.
@@ -154,44 +155,55 @@ public class Player : MonoBehaviour
         {
             this.Jump();
         }
-        this.Velocity = new Vector2(x * SPEED, this.Velocity.y);
+        this.Velocity = new Vector3(x * SPEED, this.Velocity.y);
 
         switch (state)
         {
+            case PlayerState.Idle:
             case PlayerState.Fall:
                 // Apply gravity.
-                this.Velocity += new Vector2(0, GRAVITY) * Time.deltaTime;
+                this.Velocity += new Vector3(0, GRAVITY) * Time.deltaTime;
                 break;
 
             case PlayerState.Jump:
                 // Apply gravity.
-                this.Velocity += new Vector2(0, GRAVITY) * Time.deltaTime;
+                this.Velocity += new Vector3(0, GRAVITY) * Time.deltaTime;
                 this.Fall();
                 break;
         }
 
         // Calculate broad test player AABB and velocity.
-        Vector2 va = this.Velocity * Time.deltaTime;
+        Vector3 va = this.Velocity * Time.deltaTime;
 
         // Test walls...
-        foreach (Wall wall in CollisionResolver.GetWalls())
+        Action resolution = () => this.transform.Translate(va);
+        foreach (Wall wall in EntityTracker.GetWalls())
         {
             // Sweep test.
-            Sweep sweep = this.AABB.SweepAABB(wall.AABB, Vector2.zero - va);
+            Sweep sweep = wall.AABB.SweepAABB(this.AABB, va - Vector3.zero);
             if (sweep.hit != null)
             {
-                this.Idle();
-                Debug.Log("HIT");
-
                 // Stop the player in the collision direction.
                 // Find the direction the player came from.
                 // Move the player out of the wall in that direction.
-            }
-            else
-            {
-                this.transform.Translate(va);
+                // TODO find a way to handle multiple collitions.
+                resolution = () => {
+                    this.transform.Translate(va);
+                    if (sweep.hit.normal.x != 0) {
+                        this.Velocity = new Vector3(0, this.Velocity.y);
+                        this.transform.position = new Vector3(sweep.position.x, this.transform.position.y);
+                    }
+                    if (sweep.hit.normal.y != 0) {
+                        this.Velocity = new Vector3(this.Velocity.x, 0);
+                        this.transform.position = new Vector3(this.transform.position.x, sweep.position.y);
+                        if (sweep.hit.normal.y > 0) {
+                            this.Idle();
+                        }
+                    }
+                };
             }
         }
+        resolution();
 
         // Check if off-screen and reset if necessary.
         this.CheckBounds();
@@ -204,12 +216,12 @@ public class Player : MonoBehaviour
             if (x < 0)
             {
                 // Face left.
-                this.Direction = Vector2.left;
+                this.Direction = Vector3.left;
             }
             else if (x > 0)
             {
                 // Face right.
-                this.Direction = Vector2.right;
+                this.Direction = Vector3.right;
             }
         }
         else if (absY > absX)
@@ -217,12 +229,12 @@ public class Player : MonoBehaviour
             if (y < 0)
             {
                 // Face down.
-                this.Direction = Vector2.down;
+                this.Direction = Vector3.down;
             }
             else if (y > 0)
             {
                 // Face up.
-                this.Direction = Vector2.up;
+                this.Direction = Vector3.up;
             }
         }
 

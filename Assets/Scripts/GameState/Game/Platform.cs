@@ -14,7 +14,7 @@ public class Platform : MonoBehaviour
         Platform platform = new GameObject("Platform", typeof(Platform)).GetComponent<Platform>();
         platform.transform.SetParent(parent);
 
-        CollisionResolver.AddPlatform(platform);
+        EntityTracker.AddPlatform(platform);
 
         return platform;
     }

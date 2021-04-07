@@ -18,7 +18,7 @@ public class Enemy : MonoBehaviour
         Enemy enemy = new GameObject("Enemy", typeof(Enemy)).GetComponent<Enemy>();
         enemy.transform.SetParent(parent);
 
-        CollisionResolver.AddEnemy(enemy);
+        EntityTracker.AddEnemy(enemy);
 
         return enemy;
     }

@@ -14,7 +14,7 @@ public class Wall : MonoBehaviour
         Wall wall = new GameObject("Wall", typeof(Wall)).GetComponent<Wall>();
         wall.transform.SetParent(parent);
 
-        CollisionResolver.AddWall(wall);
+        EntityTracker.AddWall(wall);
 
         return wall;
     }

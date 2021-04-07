@@ -1,29 +1,30 @@
 ﻿using UnityEngine;
+using System;
 
 public class AABB
 {
-    public Vector2 position;
-    public Vector2 half;
+    public Vector3 position;
+    public Vector3 half;
 
-    public Vector2 Min {
+    public Vector3 Min {
         get {
             return this.position - this.half;
         }
     }
 
-    public Vector2 Max {
+    public Vector3 Max {
         get {
             return this.position + this.half;
         }
     }
 
-    public AABB(Vector2 position, Vector2 half)
+    public AABB(Vector3 position, Vector3 half)
     {
         this.position = position;
         this.half = half;
     }
 
-    public Hit IntersectSegment(Vector2 position, Vector2 delta, float paddingX = 0, float paddingY = 0)
+    public Hit IntersectSegment(Vector3 position, Vector3 delta, float paddingX = 0, float paddingY = 0)
     {
         float scaleX = 1.0f / delta.x;
         float scaleY = 1.0f / delta.y;
@@ -34,7 +35,11 @@ public class AABB
         float farTimeX = (this.position.x + signX * (this.half.x + paddingX) - position.x) * scaleX;
         float farTimeY = (this.position.y + signY * (this.half.y + paddingY) - position.y) * scaleY;
 
-        if (nearTimeX > farTimeY || nearTimeY > farTimeY)
+        if (Double.IsNaN(nearTimeX) || 
+            Double.IsNaN(nearTimeY) || 
+            Double.IsNaN(farTimeX) || 
+            Double.IsNaN(farTimeY) ||
+            nearTimeX > farTimeY || nearTimeY > farTimeY)
         {
             return null;
         }
@@ -77,7 +82,7 @@ public class AABB
 
         float dy = aabb.position.y - this.position.y;
         float py = (aabb.half.y + this.half.y) - Mathf.Abs(dy);
-        if (dy <= 0)
+        if (py <= 0)
         {
             return null;
         }
@@ -101,7 +106,7 @@ public class AABB
         return hit;
     }
 
-    public Sweep SweepAABB(AABB aabb, Vector2 delta)
+    public Sweep SweepAABB(AABB aabb, Vector3 delta)
     {
         Sweep sweep = new Sweep();
         
@@ -126,7 +131,7 @@ public class AABB
             sweep.time = Mathf.Clamp01(sweep.hit.time - Mathf.Epsilon);
             sweep.position.x = aabb.position.x + delta.x * sweep.time;
             sweep.position.y = aabb.position.y + delta.y * sweep.time;
-            Vector2 direction = delta.normalized;
+            Vector3 direction = delta.normalized;
             sweep.hit.position.x = Mathf.Clamp(
                 sweep.hit.position.x + direction.x * aabb.half.x,
                 this.position.x - this.half.x,
@@ -142,20 +147,5 @@ public class AABB
             sweep.time = 1;
         }
         return sweep;
-    }
-
-    // Debug draw function.
-    public void Draw(Color color)
-    {
-        Vector2 max = Max;
-        Vector2 min = Min;
-        Vector2 topRight = new Vector2(max.x, min.y);
-        Vector2 topLeft = min;
-        Vector2 bottomRight = max;
-        Vector2 bottomLeft = new Vector2(min.x, max.y);
-        Debug.DrawLine(topLeft, topRight, color);
-        Debug.DrawLine(topRight, bottomRight, color);
-        Debug.DrawLine(bottomRight, bottomLeft, color);
-        Debug.DrawLine(bottomLeft, topLeft, color);
     }
 }

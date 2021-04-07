@@ -24,6 +24,14 @@ public class Game : MonoBehaviour
         // Create a wall.
         Wall wall = Wall.Create(transform);
         wall.Initialize(new Vector3(-2, -3.5f, 0));
+        // wall = Wall.Create(transform);
+        // wall.Initialize(new Vector3(-2.25f, -3.5f, 0));
+        // wall = Wall.Create(transform);
+        // wall.Initialize(new Vector3(-2.5f, -3.5f, 0));
+        // wall = Wall.Create(transform);
+        // wall.Initialize(new Vector3(-2.5f, -3.25f, 0));
+        // wall = Wall.Create(transform);
+        // wall.Initialize(new Vector3(-2.5f, -3f, 0));
 
         // Start the wave.
     }

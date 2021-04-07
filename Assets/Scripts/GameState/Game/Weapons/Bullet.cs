@@ -13,7 +13,7 @@ public class Bullet : MonoBehaviour
         bullet.transform.SetParent(parent);
         bullet.ReturnBullet = returnBullet;
 
-        CollisionResolver.AddBullet(bullet);
+        EntityTracker.AddBullet(bullet);
 
         return bullet;
     }
@@ -78,29 +78,29 @@ public class Bullet : MonoBehaviour
         if (!this.isActiveAndEnabled) return;
 
         // Calculate broad test bullet AABB and velocity.
-        Vector2 va = this.Velocity * Time.deltaTime;
+        Vector3 va = this.Velocity * Time.deltaTime;
 
         // Test enemies...
-        foreach (Enemy enemy in CollisionResolver.GetEnemies())
+        Action resolution = () => this.transform.Translate(va);
+        foreach (Enemy enemy in EntityTracker.GetEnemies())
         {
             if (!enemy.isActiveAndEnabled) continue;
 
             // Calculate broad test enemy AABB and velocity.
-            Vector2 vb = enemy.Velocity * Time.deltaTime;
+            Vector3 vb = enemy.Velocity * Time.deltaTime;
 
             // Sweep test.
-            Sweep sweep = this.AABB.SweepAABB(enemy.AABB, vb - va);
+            Sweep sweep = enemy.AABB.SweepAABB(this.AABB, va - vb);
             if (sweep.hit != null)
             {
-                enemy.TakeDamage();
-                this.Reset();
-            }
-            else
-            {
-                // Move.
-                this.transform.Translate(va);
+                resolution = () => {
+                    enemy.TakeDamage();
+                    this.Reset();
+                };
+                break;
             }
         }
+        resolution();
     }
 
     // Late update.
