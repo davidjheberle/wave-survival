@@ -176,34 +176,44 @@ public class Player : MonoBehaviour
         Vector3 va = this.Velocity * Time.deltaTime;
 
         // Test walls...
+        Vector3 position = this.transform.position;
         Action resolution = () => this.transform.Translate(va);
+        bool wasCollision = false;
         foreach (Wall wall in EntityTracker.GetWalls())
         {
+            // Calculate broad test player AABB and velocity.
+            va = this.Velocity * Time.deltaTime;
+
             // Sweep test.
             Sweep sweep = wall.AABB.SweepAABB(this.AABB, va - Vector3.zero);
-            if (sweep.hit != null)
+            wasCollision = sweep.hit != null;
+            if (wasCollision)
             {
                 // Stop the player in the collision direction.
                 // Find the direction the player came from.
                 // Move the player out of the wall in that direction.
                 // TODO find a way to handle multiple collitions.
-                resolution = () => {
-                    this.transform.Translate(va);
-                    if (sweep.hit.normal.x != 0) {
-                        this.Velocity = new Vector3(0, this.Velocity.y);
-                        this.transform.position = new Vector3(sweep.position.x, this.transform.position.y);
+                resolution = null;
+                this.transform.Translate(va);
+                if (sweep.hit.normal.x != 0) {
+                    this.Velocity = new Vector3(0, this.Velocity.y);
+                    this.transform.position = new Vector3(sweep.position.x, this.transform.position.y);
+                }
+                if (sweep.hit.normal.y != 0) {
+                    this.Velocity = new Vector3(this.Velocity.x, 0);
+                    this.transform.position = new Vector3(this.transform.position.x, sweep.position.y);
+                    if (sweep.hit.normal.y > 0) {
+                        this.Idle();
                     }
-                    if (sweep.hit.normal.y != 0) {
-                        this.Velocity = new Vector3(this.Velocity.x, 0);
-                        this.transform.position = new Vector3(this.transform.position.x, sweep.position.y);
-                        if (sweep.hit.normal.y > 0) {
-                            this.Idle();
-                        }
-                    }
-                };
+                }
+                va = this.transform.position - position;
             }
         }
-        resolution();
+        if (!wasCollision)
+        {
+            this.transform.Translate(va);
+        }
+        
 
         // Check if off-screen and reset if necessary.
         this.CheckBounds();
