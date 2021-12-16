@@ -3,137 +3,85 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
-public class Bullet : MonoBehaviour
-{
-    // Create a bullet.
-    public static Bullet Create(Transform parent, Action<Bullet> returnBullet)
-    {
-        // Create a game object and add a bullet script to it.
-        Bullet bullet = new GameObject("Bullet", typeof(Bullet)).GetComponent<Bullet>();
-        bullet.transform.SetParent(parent);
-        bullet.ReturnBullet = returnBullet;
-
-        EntityTracker.AddBullet(bullet);
-
-        return bullet;
-    }
-
+public class Bullet : MonoBehaviour {
     // Speed.
-    private const float SPEED = 20;
+    [SerializeField]
+    private float speed;
 
     // Direction.
-    private Vector3 Direction
-    {
+    private Vector3 Direction {
         get;
         set;
     }
 
     // Velocity.
-    public Vector3 Velocity
-    {
-        get
-        {
-            return Direction * SPEED;
-        }
-    }
-
-    // Collision AABB.
-    public AABB AABB
-    {
-        get
-        {
-            // Create a collision AABB.
-            return new AABB(transform.position, new Vector3(.05f / 2f, .05f / 2f, 0));
+    public Vector3 Velocity {
+        get {
+            return Direction * speed;
         }
     }
 
     // Action to return bullet to the source.
-    private Action<Bullet> ReturnBullet
-    {
+    private Action<Bullet> ReturnBullet {
         get;
         set;
     }
 
+    private new Rigidbody2D rigidbody;
+
     // Public initialize.
-    public void Initialize(Vector3 position, Vector3 direction)
-    {
+    public void Initialize(Transform parent, Vector3 position, Vector3 direction, Action<Bullet> returnBullet) {
+        gameObject.SetActive(true);
+        transform.SetParent(parent);
         transform.position = position;
         Direction = direction;
-        gameObject.SetActive(true);
+        rigidbody.velocity = Velocity;
+        ReturnBullet = returnBullet;
     }
 
     // Self-initialize.
-    private void Awake()
-    {
-        // Create and add the bullet sprite.
-        SpriteRenderer spriteRenderer = this.gameObject.AddComponent<SpriteRenderer>();
-        spriteRenderer.sprite = Resources.Load<Sprite>("FFFFFF-1");
-        spriteRenderer.color = Color.blue;
-        spriteRenderer.transform.localScale = new Vector3(5, 5, 1);
-    }
-
-    private void Update()
-    {
-        // Check for collition.
-        if (!this.isActiveAndEnabled) return;
-
-        // Calculate broad test bullet AABB and velocity.
-        Vector3 va = this.Velocity * Time.deltaTime;
-
-        // Test enemies...
-        Action resolution = () => this.transform.Translate(va);
-        foreach (Enemy enemy in EntityTracker.GetEnemies())
-        {
-            if (!enemy.isActiveAndEnabled) continue;
-
-            // Calculate broad test enemy AABB and velocity.
-            Vector3 vb = enemy.Velocity * Time.deltaTime;
-
-            // Sweep test.
-            Sweep sweep = enemy.AABB.SweepAABB(this.AABB, va - vb);
-            if (sweep.hit != null)
-            {
-                resolution = () => {
-                    enemy.TakeDamage();
-                    this.Reset();
-                };
-                break;
-            }
-        }
-        resolution();
+    private void Awake() {
+        rigidbody = GetComponent<Rigidbody2D>();
     }
 
     // Late update.
-    private void LateUpdate()
-    {
+    private void LateUpdate() {
         // Check if off-screen and reset if necessary.
-        this.CheckBounds();
+        CheckBounds();
     }
 
     // Reset bullet to idle.
-    public void Reset()
-    {
-        this.Direction = Vector3.zero;
-        this.transform.position = Vector3.zero;
-        this.gameObject.SetActive(false);
-        this.ReturnBullet(this);
+    public void Reset() {
+        rigidbody.velocity = Vector3.zero;
+        Direction = Vector3.zero;
+        transform.position = Vector3.zero;
+        gameObject.SetActive(false);
+        ReturnBullet(this);
     }
 
     // Check the position relative to the viewport.
-    private void CheckBounds()
-    {
+    private void CheckBounds() {
         // Return if the main camera is null.
-        if (Camera.main == null)
-        {
+        if (Camera.main == null) {
             return;
         }
 
         // Check position relative to the viewport.
         Vector3 viewportPosition = Camera.main.WorldToViewportPoint(transform.position);
         if (viewportPosition.x < 0 || viewportPosition.x > 1 ||
-            viewportPosition.y < 0 || viewportPosition.y > 1)
-        {
-            this.Reset();
+            viewportPosition.y < 0 || viewportPosition.y > 1) {
+            Reset();
+        }
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision) {
+        if (!isActiveAndEnabled) {
+            return;
+        }
+        Enemy enemy = collision.GetComponent<Enemy>();
+        if (enemy) {
+            enemy.TakeDamage();
+            Reset();
         }
     }
 }

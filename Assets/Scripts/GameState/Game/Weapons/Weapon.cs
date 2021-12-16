@@ -2,8 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class Weapon : MonoBehaviour
-{
+public abstract class Weapon : MonoBehaviour {
     // Amount of damage a hit from the weapon deals.
     [SerializeField]
     protected float damage = 0;
@@ -14,6 +13,10 @@ public abstract class Weapon : MonoBehaviour
         set;
     }
 
+    // Initialize the weapon.
+    public abstract void Initialize(Transform parent, Player owner);
+
     // Use the weapon.
     public abstract void Use();
+
 }
