@@ -15,10 +15,10 @@ TagManager:
   - 
   - PostProcessing
   - 
-  - 
-  - 
-  - 
-  - 
+  - Player
+  - PlayerHitBox
+  - Enemy
+  - EnemyHitBox
   - 
   - 
   - 
